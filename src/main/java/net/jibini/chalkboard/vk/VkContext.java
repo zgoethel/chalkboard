@@ -85,30 +85,30 @@ public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<
 	
 	private static class Depth
 	{
-		int 								format;
+		int									format;
 		long								image;
 		long								memory;
 		long								view;
 	}
 	
-	private VkInstance 						instance;
-	private VkPhysicalDevice 				physicalDevice;
+	private VkInstance						instance;
+	private VkPhysicalDevice				physicalDevice;
 	
-	private VkPhysicalDeviceProperties 		deviceProperties 		= VkPhysicalDeviceProperties.malloc();
-	private VkPhysicalDeviceFeatures 		deviceFeatures 			= VkPhysicalDeviceFeatures.malloc();
+	private VkPhysicalDeviceProperties		deviceProperties		= VkPhysicalDeviceProperties.malloc();
+	private VkPhysicalDeviceFeatures		deviceFeatures			= VkPhysicalDeviceFeatures.malloc();
 
-	private final PointerBuffer 			pointerParam			= MemoryUtil.memAllocPointer(1);
-	private final IntBuffer 				intParam				= MemoryUtil.memAllocInt(1);
-	private final LongBuffer 				longParam				= MemoryUtil.memAllocLong(1);
+	private final PointerBuffer				pointerParam			= MemoryUtil.memAllocPointer(1);
+	private final IntBuffer					intParam				= MemoryUtil.memAllocInt(1);
+	private final LongBuffer				longParam				= MemoryUtil.memAllocLong(1);
 	
 	private PointerBuffer					extensionNames			= MemoryUtil.memAllocPointer(64);
 	
 	private long							messageCallback;
 	
-	private VkQueueFamilyProperties.Buffer 	queueProps;
+	private VkQueueFamilyProperties.Buffer	queueProps;
 	
-	private long 							surface;
-	private int 							graphicsQueueNodeIndex;
+	private long							surface;
+	private int								graphicsQueueNodeIndex;
 	
 	private VkDevice						device;
 	private VkQueue							queue;
@@ -121,7 +121,7 @@ public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<
 	private SwapchainBuffer[]				buffers;
 	private int								currentBuffer;
 	
-	private VkCommandBuffer 				setupCommand;
+	private VkCommandBuffer					setupCommand;
 	
 	private Depth							depth;
 	
