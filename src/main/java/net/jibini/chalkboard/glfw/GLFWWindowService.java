@@ -6,9 +6,11 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 
 import net.jibini.chalkboard.GraphicsContext;
 import net.jibini.chalkboard.WindowService;
+import net.jibini.chalkboard.object.ContextVersioned;
 
 public class GLFWWindowService<CONTEXT extends GraphicsContext<?, ?, ?>>
-		implements WindowService<CONTEXT, GLFWWindow<CONTEXT>, GLFWWindowService<CONTEXT>>
+		implements WindowService<CONTEXT, GLFWWindow<CONTEXT>, GLFWWindowService<CONTEXT>>,
+		ContextVersioned<GLFWWindowService<CONTEXT>>
 {
 	private GLFWErrorCallback error = GLFWErrorCallback.createThrow();
 	private CONTEXT context;
@@ -35,6 +37,7 @@ public class GLFWWindowService<CONTEXT extends GraphicsContext<?, ?, ?>>
 		return this;
 	}
 	
+	@Override 
 	public GLFWWindowService<CONTEXT> withContextVersion(int version)
 	{
 		GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, version / 10);
@@ -59,5 +62,25 @@ public class GLFWWindowService<CONTEXT extends GraphicsContext<?, ?, ?>>
 	{
 		return new GLFWWindow<CONTEXT>()
 				.attachContext(context);
+	}
+
+	@Override
+	public GLFWWindowService<CONTEXT> enableGLCore()
+	{
+		GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+		return this;
+	}
+
+	@Override
+	public GLFWWindowService<CONTEXT> enableGLForwardCompat()
+	{
+		GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
+		return this;
+	}
+	
+	public GLFWWindowService<CONTEXT> withNoAPI()
+	{
+		GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
+		return this;
 	}
 }

@@ -1,28 +1,400 @@
 package net.jibini.chalkboard.vk;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.Version;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVulkan;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.vulkan.EXTDebugReport;
+import org.lwjgl.vulkan.KHRSwapchain;
 import org.lwjgl.vulkan.VK;
 import org.lwjgl.vulkan.VK10;
+import org.lwjgl.vulkan.VkApplicationInfo;
+import org.lwjgl.vulkan.VkCommandBuffer;
+import org.lwjgl.vulkan.VkDebugReportCallbackCreateInfoEXT;
+import org.lwjgl.vulkan.VkDebugReportCallbackEXT;
+import org.lwjgl.vulkan.VkDevice;
+import org.lwjgl.vulkan.VkExtensionProperties;
 import org.lwjgl.vulkan.VkInstance;
+import org.lwjgl.vulkan.VkInstanceCreateInfo;
+import org.lwjgl.vulkan.VkLayerProperties;
 import org.lwjgl.vulkan.VkPhysicalDevice;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 import org.lwjgl.vulkan.VkPhysicalDeviceProperties;
+import org.lwjgl.vulkan.VkQueue;
+import org.lwjgl.vulkan.VkQueueFamilyProperties;
 
 import net.jibini.chalkboard.GraphicsContext;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
 
+/*
+ * Copyright (c) 2015-2016 The Khronos Group Inc.
+ * Copyright (c) 2015-2016 Valve Corporation
+ * Copyright (c) 2015-2016 LunarG, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Chia-I Wu <olvaffe@gmail.com>
+ * Author: Cody Northrop <cody@lunarg.com>
+ * Author: Courtney Goeltzenleuchter <courtney@LunarG.com>
+ * Author: Ian Elliott <ian@LunarG.com>
+ * Author: Jon Ashburn <jon@lunarg.com>
+ * Author: Piers Daniell <pdaniell@nvidia.com>
+ * Author: Gwan-gyeong Mun <elongbug@gmail.com>
+ * Porter: Camilla Berglund <elmindreda@glfw.org>
+ */
+
+/*
+ * Borrows from the implementation of the LWJGL HelloVulkan:
+ * https://github.com/LWJGL/lwjgl3/blob/master/modules/samples/src/test/java/org/lwjgl/demo/vulkan/HelloVulkan.java
+ * 
+ * which is ported from the GLFW Vulkan tests:
+ * https://github.com/glfw/glfw/blob/master/tests/triangle-vulkan.c
+ * 
+ * which I assume is from somewhere else, as well.
+ * Thanks, Vulkan.
+ */
 public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<VkContext>, VkContext>
 {
-	private VkInstance instance;
-	private VkPhysicalDevice device;
+	private static final ByteBuffer KHR_swapchain    = MemoryUtil.memASCII(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	private static final ByteBuffer EXT_debug_report = MemoryUtil.memASCII(EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 	
-	private VkPhysicalDeviceProperties deviceProperties = VkPhysicalDeviceProperties.malloc();
-	private VkPhysicalDeviceFeatures deviceFeatures = VkPhysicalDeviceFeatures.malloc();
+	
+	private static class SwapchainBuffer
+	{
+		long								image;
+		VkCommandBuffer						command;
+		long								view;
+	}
+	
+	private static class Depth
+	{
+		int 								format;
+		long								image;
+		long								memory;
+		long								view;
+	}
+	
+	private VkInstance 						instance;
+	private VkPhysicalDevice 				physicalDevice;
+	
+	private VkPhysicalDeviceProperties 		deviceProperties 		= VkPhysicalDeviceProperties.malloc();
+	private VkPhysicalDeviceFeatures 		deviceFeatures 			= VkPhysicalDeviceFeatures.malloc();
+
+	private final PointerBuffer 			pointerParam			= MemoryUtil.memAllocPointer(1);
+	private final IntBuffer 				intParam				= MemoryUtil.memAllocInt(1);
+	private final LongBuffer 				longParam				= MemoryUtil.memAllocLong(1);
+	
+	private PointerBuffer					extensionNames			= MemoryUtil.memAllocPointer(64);
+	
+	private long							messageCallback;
+	
+	private VkQueueFamilyProperties.Buffer 	queueProps;
+	
+	private long 							surface;
+	private int 							graphicsQueueNodeIndex;
+	
+	private VkDevice						device;
+	private VkQueue							queue;
+	
+	private long							commandPool;
+	private VkCommandBuffer					drawCommand;
+	
+	private long							swapchain;
+	private	int								swapchainImageCount;
+	private SwapchainBuffer[]				buffers;
+	private int								currentBuffer;
+	
+	private VkCommandBuffer 				setupCommand;
+	
+	private Depth							depth;
+	
+	private long							descLayout;
+	private long							pipelineLayout;
+	
+	private long							renderPass;
+	
+	private	long							pipeline;
+	
+	private long							descPool;
+	private long							descSet;
+	
+	private LongBuffer						framebuffers;
+	
+	
+	private final VkDebugReportCallbackEXT dbgFunc = VkDebugReportCallbackEXT
+			.create((flags, objectType, object, location, messageCode, pLayerPrefix, pMessage, pUserData) ->
+			{
+				String type;
+				if ((flags & EXTDebugReport.VK_DEBUG_REPORT_INFORMATION_BIT_EXT) != 0)
+				{
+					type = "INFORMATION";
+				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_WARNING_BIT_EXT) != 0)
+				{
+					type = "WARNING";
+				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) != 0)
+				{
+					type = "PERFORMANCE WARNING";
+				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_ERROR_BIT_EXT) != 0)
+				{
+					type = "ERROR";
+				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_DEBUG_BIT_EXT) != 0)
+				{
+					type = "DEBUG";
+				} else
+				{
+					type = "UNKNOWN";
+				}
+
+				System.err.format("%s: [%s] Code %d : %s\n", type, MemoryUtil.memASCII(pLayerPrefix), messageCode,
+						VkDebugReportCallbackEXT.getString(pMessage));
+				return VK10.VK_FALSE;
+			});
+	
+	
+	private void check(int errcode)
+	{
+		if (errcode != 0)
+			throw new IllegalStateException(String.format("Vulkan error [0x%X]", errcode));
+	}
+	
+	private static PointerBuffer checkLayers(MemoryStack stack, VkLayerProperties.Buffer available, String ... layers)
+	{
+		PointerBuffer required = stack.mallocPointer(layers.length);
+		
+		for (int i = 0; i < layers.length; i++)
+		{
+			boolean found = false;
+
+			for (int j = 0; j < available.capacity(); j++)
+			{
+				available.position(j);
+				
+				if (layers[i].equals(available.layerNameString()))
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				System.err.format("Cannot find layer: %s\n", layers[i]);
+				return null;
+			}
+
+			required.put(i, stack.ASCII(layers[i]));
+		}
+
+		return required;
+	}
+	
+	private void initVk()
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			/*--------------------------------------------------------------------------------------------------------------
+			 												REQUIRED LAYERS
+			--------------------------------------------------------------------------------------------------------------*/
+			PointerBuffer requiredLayers = null;
+			check(VK10.vkEnumerateInstanceLayerProperties(intParam, null));
+			
+			if (intParam.get(0) > 0)
+			{
+				VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(intParam.get(0), stack);
+				check(VK10.vkEnumerateInstanceLayerProperties(intParam, availableLayers));
+				
+				requiredLayers = checkLayers(
+							stack, availableLayers,
+							"VK_LAYER_KHRONOS_validation"
+						);
+				if (requiredLayers == null)
+					requiredLayers = checkLayers(
+							stack, availableLayers,
+							"VK_LAYER_LUNARG_standard_validation"
+						);
+				if (requiredLayers == null)
+					requiredLayers = checkLayers(stack, availableLayers,
+							"VK_LAYER_GOOGLE_threading",
+							"VK_LAYER_LUNARG_parameter_validation",
+							"VK_LAYER_LUNARG_object_tracker",
+							"VK_LAYER_LUNARG_core_validation",
+							"VK_LAYER_GOOGLE_unique_objects"
+						);
+				if (requiredLayers == null)
+					throw new IllegalStateException("vkEnumerateInstanceLayerProperties failed to find required validation layer.");
+			}
+			
+			
+			/*--------------------------------------------------------------------------------------------------------------
+			 											  REQUIRED EXTENSIONS
+			--------------------------------------------------------------------------------------------------------------*/
+			PointerBuffer requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions();
+			if (requiredExtensions == null)
+				throw new IllegalStateException("glfwGetRequiredInstanceExtensions failed to find the platform surface extensions.");
+			for (int i = 0; i < requiredExtensions.capacity(); i ++)
+				extensionNames.put(requiredExtensions.get(i));
+			check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, null));
+			
+			if (intParam.get(0) != 0)
+			{
+				VkExtensionProperties.Buffer instanceExtensions = VkExtensionProperties.mallocStack(intParam.get(0), stack);
+				check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, instanceExtensions));
+				
+				for (int i = 0; i < intParam.get(0); i ++)
+				{
+					instanceExtensions.position(i);
+					if (EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME.equals(instanceExtensions.extensionNameString()))
+						extensionNames.put(EXT_debug_report);
+				}
+			}
+			
+			
+			/*--------------------------------------------------------------------------------------------------------------
+			 											   APPLICATION/INSTANCE
+			--------------------------------------------------------------------------------------------------------------*/
+			ByteBuffer APP_SHORT_NAME = stack.UTF8("chb");
+			
+			VkApplicationInfo app = VkApplicationInfo.mallocStack(stack)
+					.sType(VK10.VK_STRUCTURE_TYPE_APPLICATION_INFO)
+					.pNext(MemoryUtil.NULL)
+					.pApplicationName(APP_SHORT_NAME)
+					.applicationVersion(0)
+					.pEngineName(APP_SHORT_NAME)
+					.engineVersion(0)
+					.apiVersion(VK.getInstanceVersionSupported());
+			
+			extensionNames.flip();
+			VkInstanceCreateInfo instanceInfo = VkInstanceCreateInfo.mallocStack(stack)
+					.sType(VK10.VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO)
+					.pNext(MemoryUtil.NULL)
+					.flags(0)
+					.pApplicationInfo(app)
+					.ppEnabledLayerNames(requiredLayers)
+					.ppEnabledExtensionNames(extensionNames);
+			extensionNames.clear();
+			
+			VkDebugReportCallbackCreateInfoEXT debugCreateInfo = VkDebugReportCallbackCreateInfoEXT.mallocStack(stack)
+					.sType(EXTDebugReport.VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT)
+					.pNext(MemoryUtil.NULL)
+					.flags(EXTDebugReport.VK_DEBUG_REPORT_ERROR_BIT_EXT | EXTDebugReport.VK_DEBUG_REPORT_WARNING_BIT_EXT)
+					.pfnCallback(dbgFunc)
+					.pUserData(MemoryUtil.NULL);
+			instanceInfo.pNext(debugCreateInfo.address());
+			
+			
+			/*--------------------------------------------------------------------------------------------------------------
+			 											  INSTANCE CREATION
+			--------------------------------------------------------------------------------------------------------------*/
+			
+			int err = VK10.vkCreateInstance(instanceInfo, null, pointerParam);
+			
+			switch (err)
+			{
+			case VK10.VK_ERROR_INCOMPATIBLE_DRIVER:
+				throw new IllegalStateException("Cannot find a compatible Vulkan installable client driver (ICD).");
+			case VK10.VK_ERROR_EXTENSION_NOT_PRESENT:
+				throw new IllegalStateException("Cannot find a specified extension library. Make sure your layers path "
+						+ "is set appropriately.");
+			default:
+				if (err != 0)
+					throw new IllegalStateException("vkCreateInstance failed. Do you have a compatible Vulkan installable "
+							+ "client driver (ICD) installed?");
+			}
+			
+			instance = new VkInstance(pointerParam.get(0), instanceInfo);
+			
+			
+			/*--------------------------------------------------------------------------------------------------------------
+			 											  PHYSICAL DEVICES
+			--------------------------------------------------------------------------------------------------------------*/
+			check(VK10.vkEnumeratePhysicalDevices(instance, intParam, null));
+			
+			if (intParam.get(0) > 0)
+			{
+				PointerBuffer physicalDevices = stack.mallocPointer(intParam.get(0));
+				check(VK10.vkEnumeratePhysicalDevices(instance, intParam, physicalDevices));
+				physicalDevice = new VkPhysicalDevice(physicalDevices.get(0), instance);
+			} else
+				throw new IllegalStateException("vkEnumeratePhysicalDevices reported zero accessible devices.");
+			
+			
+			/*--------------------------------------------------------------------------------------------------------------
+			 										     SWAPCHAIN EXTENSION
+			--------------------------------------------------------------------------------------------------------------*/
+			boolean swapchainExtFound = false;
+			check(VK10.vkEnumerateDeviceExtensionProperties(physicalDevice, (String)null, intParam, null));
+			
+			if (intParam.get(0) > 0)
+			{
+				VkExtensionProperties.Buffer deviceExtensions = VkExtensionProperties.mallocStack(intParam.get(0), stack);
+				check(VK10.vkEnumerateDeviceExtensionProperties(physicalDevice, (String)null, intParam, deviceExtensions));
+				
+				for (int i = 0; i < intParam.get(0); i ++)
+				{
+					deviceExtensions.position(i);
+
+					if (KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME.equals(deviceExtensions.extensionNameString()))
+					{
+						swapchainExtFound = true;
+						extensionNames.put(KHR_swapchain);
+					}
+				}
+			}
+
+			if (!swapchainExtFound)
+				throw new IllegalStateException("vkEnumerateDeviceExtensionProperties failed to find the "
+						+ KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME + " extension.");
+			err = EXTDebugReport.vkCreateDebugReportCallbackEXT(instance, debugCreateInfo, null, longParam);
+			
+			switch (err)
+			{
+			case VK10.VK_SUCCESS:
+				messageCallback = longParam.get(0);
+				break;
+			case VK10.VK_ERROR_OUT_OF_HOST_MEMORY:
+				throw new IllegalStateException("CreateDebugReportCallback: out of host memory");
+			default:
+				throw new IllegalStateException("CreateDebugReportCallback: unknown failure");
+            }
+			
+			
+			/*--------------------------------------------------------------------------------------------------------------
+			 										  DEVICE PROPERTIES/FEATURES
+			--------------------------------------------------------------------------------------------------------------*/
+			VK10.vkGetPhysicalDeviceProperties(physicalDevice, deviceProperties);
+			VK10.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, intParam, null);
+			
+			queueProps = VkQueueFamilyProperties.malloc(intParam.get(0));
+			VK10.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, intParam, queueProps);
+			if (intParam.get(0) == 0)
+				throw new IllegalStateException("Physical device queue family properties is empty.");
+			VK10.vkGetPhysicalDeviceFeatures(physicalDevice, deviceFeatures);
+		}
+	}
 	
 	@Override
 	public VkContext generate()
 	{
-		
+		if (!GLFWVulkan.glfwVulkanSupported())
+			throw new IllegalStateException("Cannot find a compatible Vulkan installable client driver (ICD)");
+		initVk();
 		return this;
 	}
 
@@ -59,6 +431,9 @@ public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<
 	public GLFWWindowService<VkContext> createWindowService()
 	{
 		return new GLFWWindowService<VkContext>()
-				.initializeOnce();
+				.attachContext(this)
+				.initializeOnce()
+				
+				.withNoAPI();
 	}
 }
