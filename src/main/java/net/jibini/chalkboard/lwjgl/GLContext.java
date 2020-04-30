@@ -1,15 +1,17 @@
 package net.jibini.chalkboard.lwjgl;
 
 import org.lwjgl.Version;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLUtil;
 
-import net.jibini.chalkboard.GraphicsContext;
+import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
+import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
 import net.jibini.chalkboard.object.ContextVersioned;
 
-public class GLContext implements GraphicsContext<GLPipeline, GLFWWindowService<GLContext>, GLContext>,
+public class GLContext implements GLFWGraphicsContext<GLPipeline, GLFWWindowService<GLContext>, GLContext>,
 		ContextVersioned<GLContext>
 {
 	private int contextVersion = 33;
@@ -25,17 +27,14 @@ public class GLContext implements GraphicsContext<GLPipeline, GLFWWindowService<
 	}
 
 	@Override
-	public GLContext destroy()
-	{
-		GL.destroy();
-		return this;
-	}
+	public GLContext initialize() { return generate(); }
 
 	@Override
-	public String name()
-	{
-		return "OpenGL";
-	}
+	public GLContext destroy() { GL.destroy(); return this; }
+
+	
+	@Override
+	public String name() { return "OpenGL"; }
 
 	@Override
 	public String version()
@@ -45,31 +44,18 @@ public class GLContext implements GraphicsContext<GLPipeline, GLFWWindowService<
 	}
 
 	@Override
-	public GLPipeline createPipeline()
-	{
-		return new GLPipeline();
-	}
+	public GLPipeline createPipeline() { return new GLPipeline(); }
+	
 	
 	@Override
-	public GLContext withContextVersion(int version)
-	{
-		this.contextVersion = version;
-		return this;
-	}
+	public GLContext withContextVersion(int version) { this.contextVersion = version; return this; }
 
 	@Override
-	public GLContext enableGLCore()
-	{
-		this.core = true;
-		return this;
-	}
+	public GLContext enableGLCore() { this.core = true; return this; }
 
 	@Override
-	public GLContext enableGLForwardCompat()
-	{
-		this.forwardCompat = true;
-		return this;
-	}
+	public GLContext enableGLForwardCompat() { this.forwardCompat = true; return this; }
+	
 
 	@Override
 	public GLFWWindowService<GLContext> createWindowService()
@@ -83,4 +69,16 @@ public class GLContext implements GraphicsContext<GLPipeline, GLFWWindowService<
 		if (forwardCompat) w.enableGLForwardCompat();
 		return w;
 	}
+	
+	@Override
+	public GLContext makeCurrent(GLFWWindow<?> window)
+	{ GLFW.glfwMakeContextCurrent(window.pointer()); return this; }
+
+	@Override
+	public GLContext prepareRender(GLFWWindow<?> window)
+	{ GLFW.glfwSwapInterval(0); return this; }
+
+	@Override
+	public GLContext swapBuffers(GLFWWindow<?> window)
+	{ GLFW.glfwSwapBuffers(window.pointer()); return this; }
 }

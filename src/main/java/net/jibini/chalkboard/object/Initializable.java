@@ -7,6 +7,9 @@ public interface Initializable<THIS extends Initializable<?>>
 {
 	static List<Class<?>> initialized = new CopyOnWriteArrayList<>();
 	
+	THIS initialize();
+	
+	
 	@SuppressWarnings("unchecked")
 	default THIS initializeOnce()
 	{
@@ -17,6 +20,4 @@ public interface Initializable<THIS extends Initializable<?>>
 		} else
 			return (THIS)this;
 	}
-	
-	THIS initialize();
 }

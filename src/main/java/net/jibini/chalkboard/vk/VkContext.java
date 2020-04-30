@@ -6,8 +6,6 @@ import java.nio.LongBuffer;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.Version;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -20,6 +18,8 @@ import org.lwjgl.vulkan.VkCommandBuffer;
 import org.lwjgl.vulkan.VkDebugReportCallbackCreateInfoEXT;
 import org.lwjgl.vulkan.VkDebugReportCallbackEXT;
 import org.lwjgl.vulkan.VkDevice;
+import org.lwjgl.vulkan.VkDeviceCreateInfo;
+import org.lwjgl.vulkan.VkDeviceQueueCreateInfo;
 import org.lwjgl.vulkan.VkExtensionProperties;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkInstanceCreateInfo;
@@ -30,8 +30,10 @@ import org.lwjgl.vulkan.VkPhysicalDeviceProperties;
 import org.lwjgl.vulkan.VkQueue;
 import org.lwjgl.vulkan.VkQueueFamilyProperties;
 
-import net.jibini.chalkboard.GraphicsContext;
+import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
+import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
+import net.jibini.chalkboard.object.Initializable;
 
 /*
  * Copyright (c) 2015-2016 The Khronos Group Inc.
@@ -70,7 +72,8 @@ import net.jibini.chalkboard.glfw.GLFWWindowService;
  * which I assume is from somewhere else, as well.
  * Thanks, Vulkan.
  */
-public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<VkContext>, VkContext>
+public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowService<VkContext>, VkContext>,
+		Initializable<VkContext>
 {
 	private static final ByteBuffer KHR_swapchain    = MemoryUtil.memASCII(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	private static final ByteBuffer EXT_debug_report = MemoryUtil.memASCII(EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -302,7 +305,6 @@ public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<
 			/*--------------------------------------------------------------------------------------------------------------
 			 											  INSTANCE CREATION
 			--------------------------------------------------------------------------------------------------------------*/
-			
 			int err = VK10.vkCreateInstance(instanceInfo, null, pointerParam);
 			
 			switch (err)
@@ -389,12 +391,55 @@ public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<
 		}
 	}
 	
+	private void initDevice()
+	{
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			VkDeviceQueueCreateInfo.Buffer queue = VkDeviceQueueCreateInfo.mallocStack(1, stack)
+					.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO)
+					.pNext(MemoryUtil.NULL)
+					.flags(0)
+					.queueFamilyIndex(graphicsQueueNodeIndex)
+					.pQueuePriorities(stack.floats(0.0f));
+			
+			VkPhysicalDeviceFeatures features = VkPhysicalDeviceFeatures.callocStack(stack);
+			if (deviceFeatures.shaderClipDistance())
+				features.shaderClipDistance(true);
+			
+			extensionNames.flip();
+			VkDeviceCreateInfo device = VkDeviceCreateInfo.mallocStack(stack)
+					.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO)
+					.pNext(MemoryUtil.NULL)
+					.flags(0)
+					.pQueueCreateInfos(queue)
+					.ppEnabledLayerNames(null)
+					.ppEnabledExtensionNames(extensionNames)
+					.pEnabledFeatures(features);
+			
+			check(VK10.vkCreateDevice(physicalDevice, device, null, pointerParam));
+			this.device = new VkDevice(pointerParam.get(0), physicalDevice, device);
+		}
+	}
+	
+	private void initVkSwapchain()
+	{
+		
+	}
+
 	@Override
-	public VkContext generate()
+	public VkContext initialize()
 	{
 		if (!GLFWVulkan.glfwVulkanSupported())
 			throw new IllegalStateException("Cannot find a compatible Vulkan installable client driver (ICD)");
 		initVk();
+		initDevice();
+		return this;
+	}
+	
+	@Override
+	public VkContext generate()
+	{
+		initVkSwapchain();
 		return this;
 	}
 
@@ -435,5 +480,26 @@ public class VkContext implements GraphicsContext<VkPipeline, GLFWWindowService<
 				.initializeOnce()
 				
 				.withNoAPI();
+	}
+	
+	@Override
+	public VkContext makeCurrent(GLFWWindow<?> window)
+	{
+		
+		return this;
+	}
+
+	@Override
+	public VkContext prepareRender(GLFWWindow<?> window)
+	{
+		
+		return this;
+	}
+
+	@Override
+	public VkContext swapBuffers(GLFWWindow<?> window)
+	{
+		
+		return this;
 	}
 }

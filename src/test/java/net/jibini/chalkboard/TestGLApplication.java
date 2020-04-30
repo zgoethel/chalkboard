@@ -4,12 +4,11 @@ import org.junit.Test;
 import org.lwjgl.opengl.GL11;
 
 import net.jibini.chalkboard.lwjgl.GLContext;
-import net.jibini.chalkboard.vk.VkContext;
 
 public class TestGLApplication
 {
 	@Test
-	public void openContext() throws InterruptedException
+	public void openGLContext() throws InterruptedException
 	{
 		GLContext context = new GLContext();
 		context.withContextVersion(20)
@@ -17,10 +16,9 @@ public class TestGLApplication
 			.createWindow()
 			.withHeight(420)
 			.withWidth(768)
-			.withTitle("Test Window")
+			.withTitle("Test Window (GL)")
 			.createLifecycle(() ->
 			{
-				System.out.println(new VkContext().name() + " (" + new VkContext().version() + ")");
 				System.out.println(context.name() + " (" + context.version() + ")");
 				System.out.println(context.createWindowService().name()
 						+ " (" + context.createWindowService().version() + ")");

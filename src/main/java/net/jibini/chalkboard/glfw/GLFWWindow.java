@@ -2,11 +2,13 @@ package net.jibini.chalkboard.glfw;
 
 import org.lwjgl.glfw.GLFW;
 
-import net.jibini.chalkboard.GraphicsContext;
 import net.jibini.chalkboard.Window;
 import net.jibini.chalkboard.object.Pointer;
 
-public class GLFWWindow<CONTEXT extends GraphicsContext<?, ?, ?>>
+public class GLFWWindow
+		<
+			CONTEXT extends GLFWGraphicsContext<?, ? extends GLFWWindowService<?>, ?>
+		>
 		implements Window<CONTEXT, GLFWWindow<CONTEXT>>, Pointer<Long>
 {
 	private long pointer = 0L;
@@ -19,76 +21,52 @@ public class GLFWWindow<CONTEXT extends GraphicsContext<?, ?, ?>>
 	public GLFWWindow<CONTEXT> generate()
 	{
 		this.pointer = GLFW.glfwCreateWindow(width, height, title, 0L, 0L);
+		this.makeCurrent();
+		context.generate();
+		
 		return this;
 	}
 
 	@Override
-	public GLFWWindow<CONTEXT> destroy()
-	{
-		GLFW.glfwDestroyWindow(this.pointer());
-		return this;
-	}
+	public GLFWWindow<CONTEXT> destroy() { GLFW.glfwDestroyWindow(this.pointer()); return this; }
 
 	@Override
-	public GLFWWindow<CONTEXT> attachContext(CONTEXT context)
-	{
-		this.context = context;
-		return this;
-	}
+	public GLFWWindow<CONTEXT> attachContext(CONTEXT context) { this.context = context; return this; }
 
 	@Override
-	public Long pointer()
-	{
-		return pointer;
-	}
+	public Long pointer() { return pointer; }
 
-	@Override
-	public GLFWWindow<CONTEXT> withWidth(int width)
-	{
-		this.width = width;
-		return this;
-	}
-
-	@Override
-	public GLFWWindow<CONTEXT> withHeight(int height)
-	{
-		this.height = height;
-		return this;
-	}
-
-	@Override
-	public GLFWWindow<CONTEXT> withTitle(String title)
-	{
-		this.title = title;
-		return this;
-	}
 	
-	public boolean shouldClose()
-	{
-		return GLFW.glfwWindowShouldClose(pointer());
-	}
+	
+	@Override
+	public GLFWWindow<CONTEXT> withWidth(int width) { this.width = width; return this; }
 
 	@Override
-	public GLFWWindow<CONTEXT> prepareRender()
-	{
-		GLFW.glfwSwapInterval(1);
-		return this;
-	}
+	public GLFWWindow<CONTEXT> withHeight(int height) { this.height = height; return this; }
 
+	@Override
+	public GLFWWindow<CONTEXT> withTitle(String title) { this.title = title; return this; }
+	
+	
+	
+	public boolean shouldClose() { return GLFW.glfwWindowShouldClose(pointer()); }
+
+	@Override
+	public GLFWWindow<CONTEXT> prepareRender() { context.prepareRender(this); return this; }
+
+	
 	@Override
 	public GLFWWindow<CONTEXT> swapBuffers()
 	{
 		GLFW.glfwPollEvents();
-		GLFW.glfwSwapBuffers(pointer());
+		context.swapBuffers(this);
 		return this;
 	}
 	
-	public GLFWWindow<CONTEXT> makeCurrent()
-	{
-		GLFW.glfwMakeContextCurrent(pointer());
-		context.generate();
-		return this;
-	}
+	public GLFWWindow<CONTEXT> makeCurrent() { context.makeCurrent(this); return this; }
+	
+	public GLFWWindow<CONTEXT> initContext() { context.initializeOnce(); return this; }
+	
 	
 	public GLFWLifecycle<CONTEXT> createLifecycle(Runnable setup, Runnable update, Runnable destroy)
 	{
@@ -115,7 +93,6 @@ public class GLFWWindow<CONTEXT extends GraphicsContext<?, ?, ?>>
 						return this;
 					}
 				}
-		
 				.withWindow(this);
 	}
 }

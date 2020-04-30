@@ -2,6 +2,7 @@ package net.jibini.chalkboard;
 
 import net.jibini.chalkboard.object.Destroyable;
 import net.jibini.chalkboard.object.Generatable;
+import net.jibini.chalkboard.object.Initializable;
 import net.jibini.chalkboard.object.NameVersioned;
 
 public interface GraphicsContext
@@ -10,9 +11,9 @@ public interface GraphicsContext
 			WINDOW extends WindowService<?, ?, ?>,
 			THIS extends GraphicsContext<?, ?, ?>
 		>
-		extends Generatable<THIS>, Destroyable<THIS>, NameVersioned
+		extends Generatable<THIS>, Destroyable<THIS>, NameVersioned, Initializable<THIS>
 {
-	 PIPELINE createPipeline();
+	WINDOW createWindowService();
 	 
-	 WINDOW createWindowService();
+	PIPELINE createPipeline();
 }

@@ -4,29 +4,25 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
-import net.jibini.chalkboard.GraphicsContext;
 import net.jibini.chalkboard.WindowService;
 import net.jibini.chalkboard.object.ContextVersioned;
 
-public class GLFWWindowService<CONTEXT extends GraphicsContext<?, ?, ?>>
+public class GLFWWindowService
+		<
+			CONTEXT extends GLFWGraphicsContext<?, ? extends GLFWWindowService<?>, ?>
+		>
 		implements WindowService<CONTEXT, GLFWWindow<CONTEXT>, GLFWWindowService<CONTEXT>>,
-		ContextVersioned<GLFWWindowService<CONTEXT>>
+				ContextVersioned<GLFWWindowService<CONTEXT>>
 {
 	private GLFWErrorCallback error = GLFWErrorCallback.createThrow();
 	private CONTEXT context;
 	
 	public GLFWWindowService<CONTEXT> attachContext(CONTEXT context)
-	{
-		this.context = context;
-		return this;
-	}
+	{ this.context = context; return this; }
 	
 	@Override
-	public GLFWWindowService<CONTEXT> destroy()
-	{
-		GLFW.glfwTerminate();
-		return this;
-	}
+	public GLFWWindowService<CONTEXT> destroy() { GLFW.glfwTerminate(); return this; }
+	
 
 	@Override
 	public GLFWWindowService<CONTEXT> initialize()
@@ -46,16 +42,11 @@ public class GLFWWindowService<CONTEXT extends GraphicsContext<?, ?, ?>>
 	}
 
 	@Override
-	public String name()
-	{
-		return "GLFW";
-	}
+	public String name() { return "GLFW"; }
 
 	@Override
-	public String version()
-	{
-		return GLFW.glfwGetVersionString() + " [LWJGL " + Version.getVersion() + "]";
-	}
+	public String version() { return GLFW.glfwGetVersionString() + " [LWJGL " + Version.getVersion() + "]"; }
+	
 
 	@Override
 	public GLFWWindow<CONTEXT> createWindow()
@@ -66,21 +57,12 @@ public class GLFWWindowService<CONTEXT extends GraphicsContext<?, ?, ?>>
 
 	@Override
 	public GLFWWindowService<CONTEXT> enableGLCore()
-	{
-		GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-		return this;
-	}
+	{ GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE); return this; }
 
 	@Override
 	public GLFWWindowService<CONTEXT> enableGLForwardCompat()
-	{
-		GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
-		return this;
-	}
+	{ GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE); return this; }
 	
 	public GLFWWindowService<CONTEXT> withNoAPI()
-	{
-		GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
-		return this;
-	}
+	{ GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API); return this; }
 }

@@ -6,15 +6,18 @@ public interface Lifecycle<THIS extends Lifecycle<?>>
 	
 	THIS setup();
 	
+	
 	THIS preUpdate();
 	
 	THIS update();
 	
 	THIS postUpdate();
 	
+	
 	THIS destroy();
 	
 	THIS postDestroy();
+	
 	
 	boolean isAlive();
 	

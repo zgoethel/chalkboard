@@ -7,11 +7,26 @@ import net.jibini.chalkboard.vk.VkContext;
 public class TestVkApplication
 {
 	@Test
-	public void openContext() throws InterruptedException
+	public void openVkContext() throws InterruptedException
 	{
 		VkContext context = new VkContext();
-		context.createWindowService();
-		context.generate()
-				.destroy();
+		context.createWindowService()
+				.createWindow()
+				.withHeight(420)
+				.withWidth(768)
+				.withTitle("Test Window (Vk)")
+				.createLifecycle(() ->
+				{
+					
+				}, () ->
+				{
+					
+				}, () ->
+				{
+					
+				})
+				.spawnThread()
+				.join();
+		context.destroy();
 	}
 }
