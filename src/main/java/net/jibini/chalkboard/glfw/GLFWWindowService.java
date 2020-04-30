@@ -34,6 +34,13 @@ public class GLFWWindowService<CONTEXT extends GraphicsContext<?, ?, ?>>
 			throw new IllegalStateException("Failed to initialize GLFW");
 		return this;
 	}
+	
+	public GLFWWindowService<CONTEXT> withContextVersion(int version)
+	{
+		GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, version / 10);
+		GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, version % 10);
+		return this;
+	}
 
 	@Override
 	public String name()
