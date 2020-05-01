@@ -7,6 +7,7 @@ import net.jibini.chalkboard.vk.VkContext;
 public class TestVkApplication
 {
 	@Test
+	@Deprecated
 	public void openVkContext() throws InterruptedException
 	{
 		VkContext context = new VkContext();

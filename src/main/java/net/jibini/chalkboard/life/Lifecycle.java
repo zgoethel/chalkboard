@@ -1,6 +1,11 @@
 package net.jibini.chalkboard.life;
 
-public interface Lifecycle<THIS extends Lifecycle<?>>
+import net.jibini.chalkboard.object.Conversational;
+
+// Replace with GLFW callbacks
+@Deprecated
+public interface Lifecycle<THIS extends Lifecycle<THIS>>
+		extends Conversational<THIS>
 {
 	THIS initContext();
 	
@@ -21,7 +26,6 @@ public interface Lifecycle<THIS extends Lifecycle<?>>
 	
 	boolean isAlive();
 	
-	@SuppressWarnings("unchecked")
 	default THIS start()
 	{
 		this.initContext();
@@ -37,7 +41,7 @@ public interface Lifecycle<THIS extends Lifecycle<?>>
 		this.destroy();
 		this.postDestroy();
 		
-		return (THIS)this;
+		return self();
 	}
 	
 	default Thread spawnThread()

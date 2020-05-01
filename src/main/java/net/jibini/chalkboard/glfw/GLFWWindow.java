@@ -7,9 +7,17 @@ import net.jibini.chalkboard.object.Pointer;
 
 public class GLFWWindow
 		<
-			CONTEXT extends GLFWGraphicsContext<?, ? extends GLFWWindowService<?>, ?>
+			CONTEXT extends GLFWGraphicsContext<CONTEXT, PIPELINE>,
+			PIPELINE extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
 		>
-		implements Window<CONTEXT, GLFWWindow<CONTEXT>>, Pointer<Long>
+		implements Window
+		<
+			CONTEXT,
+			PIPELINE,
+			GLFWWindowService<CONTEXT, PIPELINE>,
+			GLFWWindow<CONTEXT, PIPELINE>
+		>,
+			Pointer<Long>
 {
 	private long pointer = 0L;
 	private int width = 1280, height = 720;
@@ -18,20 +26,24 @@ public class GLFWWindow
 	private CONTEXT context = null;
 	
 	@Override
-	public GLFWWindow<CONTEXT> generate()
+	public GLFWWindow<CONTEXT, PIPELINE> generate()
 	{
 		this.pointer = GLFW.glfwCreateWindow(width, height, title, 0L, 0L);
 		this.makeCurrent();
 		context.initializeOnce()
 				.generate();
-		return this;
+		return self();
 	}
 
 	@Override
-	public GLFWWindow<CONTEXT> destroy() { GLFW.glfwDestroyWindow(this.pointer()); return this; }
+	public GLFWWindow<CONTEXT, PIPELINE> destroy() { GLFW.glfwDestroyWindow(this.pointer()); return self(); }
 
 	@Override
-	public GLFWWindow<CONTEXT> attachContext(CONTEXT context) { this.context = context; return this; }
+	public GLFWWindow<CONTEXT, PIPELINE> attachContext(CONTEXT context)
+	{
+		this.context = context;
+		return self();
+	}
 
 	@Override
 	public Long pointer() { return pointer; }
@@ -39,58 +51,59 @@ public class GLFWWindow
 	
 	
 	@Override
-	public GLFWWindow<CONTEXT> withWidth(int width) { this.width = width; return this; }
+	public GLFWWindow<CONTEXT, PIPELINE> withWidth(int width) { this.width = width; return self(); }
 
 	@Override
-	public GLFWWindow<CONTEXT> withHeight(int height) { this.height = height; return this; }
+	public GLFWWindow<CONTEXT, PIPELINE> withHeight(int height) { this.height = height; return self(); }
 
 	@Override
-	public GLFWWindow<CONTEXT> withTitle(String title) { this.title = title; return this; }
+	public GLFWWindow<CONTEXT, PIPELINE> withTitle(String title) { this.title = title; return self(); }
 	
 	
 	
 	public boolean shouldClose() { return GLFW.glfwWindowShouldClose(pointer()); }
 
 	@Override
-	public GLFWWindow<CONTEXT> prepareRender() { context.prepareRender(this); return this; }
+	public GLFWWindow<CONTEXT, PIPELINE> prepareRender() { context.prepareRender(self()); return self(); }
 
 	
 	@Override
-	public GLFWWindow<CONTEXT> swapBuffers()
+	public GLFWWindow<CONTEXT, PIPELINE> swapBuffers()
 	{
 		GLFW.glfwPollEvents();
-		context.swapBuffers(this);
-		return this;
+		context.swapBuffers(self());
+		return self();
 	}
 	
-	public GLFWWindow<CONTEXT> makeCurrent() { context.makeCurrent(this); return this; }
+	public GLFWWindow<CONTEXT, PIPELINE> makeCurrent() { context.makeCurrent(self()); return self(); }
 	
 	
-	public GLFWLifecycle<CONTEXT> createLifecycle(Runnable setup, Runnable update, Runnable destroy)
+	@Deprecated
+	public GLFWLifecycle<CONTEXT, PIPELINE> createLifecycle(Runnable setup, Runnable update, Runnable destroy)
 	{
-		return new GLFWLifecycle<CONTEXT>()
+		return new GLFWLifecycle<CONTEXT, PIPELINE>()
 				{
 					@Override
-					public GLFWLifecycle<CONTEXT> setup()
+					public GLFWLifecycle<CONTEXT, PIPELINE> setup()
 					{
 						setup.run();
 						return this;
 					}
 
 					@Override
-					public GLFWLifecycle<CONTEXT> update()
+					public GLFWLifecycle<CONTEXT, PIPELINE> update()
 					{
 						update.run();
 						return this;
 					}
 
 					@Override
-					public GLFWLifecycle<CONTEXT> destroy()
+					public GLFWLifecycle<CONTEXT, PIPELINE> destroy()
 					{
 						destroy.run();
 						return this;
 					}
 				}
-				.withWindow(this);
+				.withWindow(self());
 	}
 }

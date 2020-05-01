@@ -2,32 +2,34 @@ package net.jibini.chalkboard.glfw;
 
 import net.jibini.chalkboard.life.Lifecycle;
 
+@Deprecated
 public abstract class GLFWLifecycle
 		<
-			CONTEXT extends GLFWGraphicsContext<?, ? extends GLFWWindowService<?>, ?>
+			CONTEXT extends GLFWGraphicsContext<CONTEXT, PIPELINE>,
+			PIPELINE extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
 		>
-		implements Lifecycle<GLFWLifecycle<CONTEXT>>
+		implements Lifecycle<GLFWLifecycle<CONTEXT, PIPELINE>>
 {
-	private GLFWWindow<CONTEXT> window;
+	private GLFWWindow<CONTEXT, PIPELINE> window;
 	private long t = 0, c = -1;
 	
-	public GLFWLifecycle<CONTEXT> withWindow(GLFWWindow<CONTEXT> window)
-	{ this.window = window; return this; }
+	public GLFWLifecycle<CONTEXT, PIPELINE> withWindow(GLFWWindow<CONTEXT, PIPELINE> window)
+	{ this.window = window; return self(); }
 	
 	
 	@Override
-	public GLFWLifecycle<CONTEXT> initContext()
+	public GLFWLifecycle<CONTEXT, PIPELINE> initContext()
 	{
 		window.generate();
-		return this;
+		return self();
 	}
 
 	@Override
-	public GLFWLifecycle<CONTEXT> preUpdate() { window.prepareRender(); return this; }
+	public GLFWLifecycle<CONTEXT, PIPELINE> preUpdate() { window.prepareRender(); return self(); }
 	
 
 	@Override
-	public GLFWLifecycle<CONTEXT> postUpdate()
+	public GLFWLifecycle<CONTEXT, PIPELINE> postUpdate()
 	{
 		window.swapBuffers();
 		if (c == -1)
@@ -41,11 +43,11 @@ public abstract class GLFWLifecycle
 			c = 0;
 		}
 		
-		return this;
+		return self();
 	}
 
 	@Override
-	public GLFWLifecycle<CONTEXT> postDestroy() { window.destroy(); return this; }
+	public GLFWLifecycle<CONTEXT, PIPELINE> postDestroy() { window.destroy(); return self(); }
 
 	@Override
 	public boolean isAlive() { return !window.shouldClose(); }

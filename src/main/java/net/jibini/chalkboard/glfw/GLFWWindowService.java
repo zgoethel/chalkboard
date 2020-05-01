@@ -9,36 +9,43 @@ import net.jibini.chalkboard.object.ContextVersioned;
 
 public class GLFWWindowService
 		<
-			CONTEXT extends GLFWGraphicsContext<?, ? extends GLFWWindowService<?>, ?>
+			CONTEXT extends GLFWGraphicsContext<CONTEXT, PIPELINE>,
+			PIPELINE extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
 		>
-		implements WindowService<CONTEXT, GLFWWindow<CONTEXT>, GLFWWindowService<CONTEXT>>,
-				ContextVersioned<GLFWWindowService<CONTEXT>>
+		implements WindowService
+		<
+			CONTEXT,
+			PIPELINE,
+			GLFWWindowService<CONTEXT, PIPELINE>,
+			GLFWWindow<CONTEXT, PIPELINE>
+		>,
+			ContextVersioned<GLFWWindowService<CONTEXT, PIPELINE>>
 {
 	private GLFWErrorCallback error = GLFWErrorCallback.createThrow();
 	private CONTEXT context;
 	
-	public GLFWWindowService<CONTEXT> attachContext(CONTEXT context)
-	{ this.context = context; return this; }
+	public GLFWWindowService<CONTEXT, PIPELINE> attachContext(CONTEXT context)
+	{ this.context = context; return self(); }
 	
 	@Override
-	public GLFWWindowService<CONTEXT> destroy() { GLFW.glfwTerminate(); return this; }
+	public GLFWWindowService<CONTEXT, PIPELINE> destroy() { GLFW.glfwTerminate(); return self(); }
 	
 
 	@Override
-	public GLFWWindowService<CONTEXT> initialize()
+	public GLFWWindowService<CONTEXT, PIPELINE> initialize()
 	{
 		GLFW.glfwSetErrorCallback(error);
 		if (!GLFW.glfwInit())
 			throw new IllegalStateException("Failed to initialize GLFW");
-		return this;
+		return self();
 	}
 	
 	@Override 
-	public GLFWWindowService<CONTEXT> withContextVersion(int version)
+	public GLFWWindowService<CONTEXT, PIPELINE> withContextVersion(int version)
 	{
 		GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, version / 10);
 		GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, version % 10);
-		return this;
+		return self();
 	}
 
 	@Override
@@ -49,20 +56,20 @@ public class GLFWWindowService
 	
 
 	@Override
-	public GLFWWindow<CONTEXT> createWindow()
+	public GLFWWindow<CONTEXT, PIPELINE> createWindow()
 	{
-		return new GLFWWindow<CONTEXT>()
+		return new GLFWWindow<CONTEXT, PIPELINE>()
 				.attachContext(context);
 	}
 
 	@Override
-	public GLFWWindowService<CONTEXT> enableGLCore()
-	{ GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE); return this; }
+	public GLFWWindowService<CONTEXT, PIPELINE> enableGLCore()
+	{ GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE); return self(); }
 
 	@Override
-	public GLFWWindowService<CONTEXT> enableGLForwardCompat()
-	{ GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE); return this; }
+	public GLFWWindowService<CONTEXT, PIPELINE> enableGLForwardCompat()
+	{ GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE); return self(); }
 	
-	public GLFWWindowService<CONTEXT> withNoAPI()
-	{ GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API); return this; }
+	public GLFWWindowService<CONTEXT, PIPELINE> withNoAPI()
+	{ GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API); return self(); }
 }

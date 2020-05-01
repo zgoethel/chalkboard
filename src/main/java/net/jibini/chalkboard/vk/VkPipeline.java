@@ -1,6 +1,6 @@
 package net.jibini.chalkboard.vk;
 
-import net.jibini.chalkboard.GraphicsPipeline;
+import net.jibini.chalkboard.glfw.GLFWGraphicsPipeline;
 
-public class VkPipeline implements GraphicsPipeline<VkPipeline>
+public class VkPipeline implements GLFWGraphicsPipeline<VkContext, VkPipeline>
 {  }

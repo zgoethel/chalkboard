@@ -75,7 +75,11 @@ import net.jibini.chalkboard.object.Initializable;
  * which I assume is from somewhere else, as well.
  * Thanks, Vulkan.
  */
-public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowService<VkContext>, VkContext>,
+public class VkContext  implements GLFWGraphicsContext
+		<
+			VkContext,
+			VkPipeline
+		>,
 		Initializable<VkContext>
 {
 	private static final ByteBuffer KHR_swapchain    = MemoryUtil.memASCII(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -84,72 +88,72 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	
 	private static class SwapchainBuffer
 	{
-		long								image;
-		VkCommandBuffer						command;
-		long								view;
+		long									image;
+		VkCommandBuffer							command;
+		long									view;
 	}
 	
 	private static class Depth
 	{
-		int									format;
-		long								image;
-		long								memory;
-		long								view;
+		int										format;
+		long									image;
+		long									memory;
+		long									view;
 	}
 	
-	private VkInstance						instance;
-	private VkPhysicalDevice				physicalDevice;
+	private VkInstance							instance;
+	private VkPhysicalDevice					physicalDevice;
 	
-	private VkPhysicalDeviceProperties		deviceProperties		= VkPhysicalDeviceProperties.malloc();
-	private VkPhysicalDeviceFeatures		deviceFeatures			= VkPhysicalDeviceFeatures.malloc();
+	private VkPhysicalDeviceProperties			deviceProperties		= VkPhysicalDeviceProperties.malloc();
+	private VkPhysicalDeviceFeatures			deviceFeatures			= VkPhysicalDeviceFeatures.malloc();
 
-	private final PointerBuffer				pointerParam			= MemoryUtil.memAllocPointer(1);
-	private final IntBuffer					intParam				= MemoryUtil.memAllocInt(1);
-	private final LongBuffer				longParam				= MemoryUtil.memAllocLong(1);
+	private final PointerBuffer					pointerParam			= MemoryUtil.memAllocPointer(1);
+	private final IntBuffer						intParam				= MemoryUtil.memAllocInt(1);
+	private final LongBuffer					longParam				= MemoryUtil.memAllocLong(1);
 	
-	private PointerBuffer					extensionNames			= MemoryUtil.memAllocPointer(64);
+	private PointerBuffer						extensionNames			= MemoryUtil.memAllocPointer(64);
 	
-	private long							messageCallback;
+	private long								messageCallback;
 	
-	private VkQueueFamilyProperties.Buffer	queueProps;
+	private VkQueueFamilyProperties.Buffer		queueProps;
 	
-	private long							surface;
-	private int								graphicsQueueNodeIndex;
+	private long								surface;
+	private int									graphicsQueueNodeIndex;
 	
-	private VkDevice						device;
-	private VkQueue							queue;
+	private VkDevice							device;
+	private VkQueue								queue;
 	
-	private int								format;
-	private int								colorSpace;
+	private int									format;
+	private int									colorSpace;
 	
 	// Messing up my formatting. :'(
-	private VkPhysicalDeviceMemoryProperties memoryProperties 		= VkPhysicalDeviceMemoryProperties.malloc();
+	private VkPhysicalDeviceMemoryProperties	memoryProperties 		= VkPhysicalDeviceMemoryProperties.malloc();
 	
-	private long							commandPool;
-	private VkCommandBuffer					drawCommand;
+	private long								commandPool;
+	private VkCommandBuffer						drawCommand;
 	
-	private long							swapchain;
-	private	int								swapchainImageCount;
-	private SwapchainBuffer[]				buffers;
-	private int								currentBuffer;
+	private long								swapchain;
+	private	int									swapchainImageCount;
+	private SwapchainBuffer[]					buffers;
+	private int									currentBuffer;
 	
-	private VkCommandBuffer					setupCommand;
+	private VkCommandBuffer						setupCommand;
 	
-	private Depth							depth;
+	private Depth								depth;
 	
-	private long							descLayout;
-	private long							pipelineLayout;
+	private long								descLayout;
+	private long								pipelineLayout;
 	
-	private long							renderPass;
+	private long								renderPass;
 	
-	private	long							pipeline;
+	private	long								pipeline;
 	
-	private long							descPool;
-	private long							descSet;
+	private long								descPool;
+	private long								descSet;
 	
-	private LongBuffer						framebuffers;
+	private LongBuffer							framebuffers;
 	
-	private GLFWWindow<?>					window;
+	private GLFWWindow<VkContext, VkPipeline>	window;
 	
 	
 	private final VkDebugReportCallbackEXT dbgFunc = VkDebugReportCallbackEXT
@@ -545,9 +549,9 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	}
 
 	@Override
-	public GLFWWindowService<VkContext> createWindowService()
+	public GLFWWindowService<VkContext, VkPipeline> createWindowService()
 	{
-		return new GLFWWindowService<VkContext>()
+		return new GLFWWindowService<VkContext, VkPipeline>()
 				.attachContext(this)
 				.initializeOnce()
 				
@@ -555,21 +559,21 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	}
 	
 	@Override
-	public VkContext makeCurrent(GLFWWindow<?> window)
+	public VkContext makeCurrent(GLFWWindow<VkContext, VkPipeline> window)
 	{
 		this.window = window;
 		return this;
 	}
 
 	@Override
-	public VkContext prepareRender(GLFWWindow<?> window)
+	public VkContext prepareRender(GLFWWindow<VkContext, VkPipeline> window)
 	{
 		
 		return this;
 	}
 
 	@Override
-	public VkContext swapBuffers(GLFWWindow<?> window)
+	public VkContext swapBuffers(GLFWWindow<VkContext, VkPipeline> window)
 	{
 		
 		return this;

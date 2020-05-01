@@ -1,19 +1,23 @@
 package net.jibini.chalkboard.glfw;
 
 import net.jibini.chalkboard.GraphicsContext;
-import net.jibini.chalkboard.GraphicsPipeline;
 
 public interface GLFWGraphicsContext
 		<
-			PIPELINE extends GraphicsPipeline<?>,
-			WINDOW extends GLFWWindowService<?>,
-			THIS extends GLFWGraphicsContext<?, ? extends GLFWWindowService<?>, THIS>
+			CONTEXT extends GLFWGraphicsContext<CONTEXT, PIPELINE>,
+			PIPELINE extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
 		>
-		extends GraphicsContext<PIPELINE, WINDOW, THIS>
+		extends GraphicsContext
+		<
+			CONTEXT,
+			PIPELINE,
+			GLFWWindowService<CONTEXT, PIPELINE>,
+			GLFWWindow<CONTEXT, PIPELINE>
+		>
 {
-	THIS makeCurrent(GLFWWindow<?> window);
+	CONTEXT makeCurrent(GLFWWindow<CONTEXT, PIPELINE> window);
 	
-	THIS prepareRender(GLFWWindow<?> window);
+	CONTEXT prepareRender(GLFWWindow<CONTEXT, PIPELINE> window);
 	
-	THIS swapBuffers(GLFWWindow<?> window);
+	CONTEXT swapBuffers(GLFWWindow<CONTEXT, PIPELINE> window);
 }

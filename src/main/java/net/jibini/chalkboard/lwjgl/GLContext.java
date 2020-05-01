@@ -11,8 +11,12 @@ import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
 import net.jibini.chalkboard.object.ContextVersioned;
 
-public class GLContext implements GLFWGraphicsContext<GLPipeline, GLFWWindowService<GLContext>, GLContext>,
-		ContextVersioned<GLContext>
+public class GLContext implements GLFWGraphicsContext
+		<
+			GLContext,
+			GLPipeline
+		>,
+			ContextVersioned<GLContext>
 {
 	private int contextVersion = 33;
 	private boolean core = false;
@@ -58,9 +62,9 @@ public class GLContext implements GLFWGraphicsContext<GLPipeline, GLFWWindowServ
 	
 
 	@Override
-	public GLFWWindowService<GLContext> createWindowService()
+	public GLFWWindowService<GLContext, GLPipeline> createWindowService()
 	{
-		GLFWWindowService<GLContext> w = new GLFWWindowService<GLContext>()
+		GLFWWindowService<GLContext, GLPipeline> w = new GLFWWindowService<GLContext, GLPipeline>()
 				.attachContext(this)
 				.initializeOnce()
 				
@@ -71,14 +75,14 @@ public class GLContext implements GLFWGraphicsContext<GLPipeline, GLFWWindowServ
 	}
 	
 	@Override
-	public GLContext makeCurrent(GLFWWindow<?> window)
+	public GLContext makeCurrent(GLFWWindow<GLContext, GLPipeline> window)
 	{ GLFW.glfwMakeContextCurrent(window.pointer()); return this; }
 
 	@Override
-	public GLContext prepareRender(GLFWWindow<?> window)
+	public GLContext prepareRender(GLFWWindow<GLContext, GLPipeline> window)
 	{ GLFW.glfwSwapInterval(0); return this; }
 
 	@Override
-	public GLContext swapBuffers(GLFWWindow<?> window)
+	public GLContext swapBuffers(GLFWWindow<GLContext, GLPipeline> window)
 	{ GLFW.glfwSwapBuffers(window.pointer()); return this; }
 }
