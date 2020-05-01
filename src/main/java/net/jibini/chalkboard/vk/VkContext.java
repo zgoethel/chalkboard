@@ -37,6 +37,8 @@ import org.lwjgl.vulkan.VkSurfaceFormatKHR;
 import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
 import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
+import net.jibini.chalkboard.vk.system.VkSys;
+import net.jibini.chalkboard.vk.system.VkSysLayers;
 
 /*
  * Copyright (c) 2015-2016 The Khronos Group Inc.
@@ -105,10 +107,6 @@ public class VkContext  implements GLFWGraphicsContext
 	
 	private VkPhysicalDeviceProperties			deviceProperties		= VkPhysicalDeviceProperties.malloc();
 	private VkPhysicalDeviceFeatures			deviceFeatures			= VkPhysicalDeviceFeatures.malloc();
-
-	private final PointerBuffer					pointerParam			= MemoryUtil.memAllocPointer(1);
-	private final IntBuffer						intParam				= MemoryUtil.memAllocInt(1);
-	private final LongBuffer					longParam				= MemoryUtil.memAllocLong(1);
 	
 	private PointerBuffer						extensionNames			= MemoryUtil.memAllocPointer(64);
 	
@@ -160,103 +158,29 @@ public class VkContext  implements GLFWGraphicsContext
 			{
 				String type;
 				if ((flags & EXTDebugReport.VK_DEBUG_REPORT_INFORMATION_BIT_EXT) != 0)
-				{
 					type = "INFORMATION";
-				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_WARNING_BIT_EXT) != 0)
-				{
+				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_WARNING_BIT_EXT) != 0)
 					type = "WARNING";
-				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) != 0)
-				{
+				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) != 0)
 					type = "PERFORMANCE WARNING";
-				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_ERROR_BIT_EXT) != 0)
-				{
+				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_ERROR_BIT_EXT) != 0)
 					type = "ERROR";
-				} else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_DEBUG_BIT_EXT) != 0)
-				{
+				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_DEBUG_BIT_EXT) != 0)
 					type = "DEBUG";
-				} else
-				{
+				else
 					type = "UNKNOWN";
-				}
 
 				System.err.format("%s: [%s] Code %d : %s\n", type, MemoryUtil.memASCII(pLayerPrefix), messageCode,
 						VkDebugReportCallbackEXT.getString(pMessage));
 				return VK10.VK_FALSE;
 			});
 	
-	
-	private void check(int errcode)
-	{
-		if (errcode != 0)
-			throw new IllegalStateException(String.format("Vulkan error [0x%X]", errcode));
-	}
-	
-	private static PointerBuffer checkLayers(MemoryStack stack, VkLayerProperties.Buffer available, String ... layers)
-	{
-		PointerBuffer required = stack.mallocPointer(layers.length);
-		
-		for (int i = 0; i < layers.length; i++)
-		{
-			boolean found = false;
-
-			for (int j = 0; j < available.capacity(); j++)
-			{
-				available.position(j);
-				
-				if (layers[i].equals(available.layerNameString()))
-				{
-					found = true;
-					break;
-				}
-			}
-
-			if (!found)
-			{
-				System.err.format("Cannot find layer: %s\n", layers[i]);
-				return null;
-			}
-
-			required.put(i, stack.ASCII(layers[i]));
-		}
-
-		return required;
-	}
-	
 	private void initVk()
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
-			/*--------------------------------------------------------------------------------------------------------------
-			 												REQUIRED LAYERS
-			--------------------------------------------------------------------------------------------------------------*/
-			PointerBuffer requiredLayers = null;
-			check(VK10.vkEnumerateInstanceLayerProperties(intParam, null));
-			
-			if (intParam.get(0) > 0)
-			{
-				VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(intParam.get(0), stack);
-				check(VK10.vkEnumerateInstanceLayerProperties(intParam, availableLayers));
-				
-				requiredLayers = checkLayers(
-							stack, availableLayers,
-							"VK_LAYER_KHRONOS_validation"
-						);
-				if (requiredLayers == null)
-					requiredLayers = checkLayers(
-							stack, availableLayers,
-							"VK_LAYER_LUNARG_standard_validation"
-						);
-				if (requiredLayers == null)
-					requiredLayers = checkLayers(stack, availableLayers,
-							"VK_LAYER_GOOGLE_threading",
-							"VK_LAYER_LUNARG_parameter_validation",
-							"VK_LAYER_LUNARG_object_tracker",
-							"VK_LAYER_LUNARG_core_validation",
-							"VK_LAYER_GOOGLE_unique_objects"
-						);
-				if (requiredLayers == null)
-					throw new IllegalStateException("vkEnumerateInstanceLayerProperties failed to find required validation layer.");
-			}
+			VkSys sys = new VkSys(stack);
+			PointerBuffer layers = new VkSysLayers().checkLayers(stack, VkSysLayers.VALIDATION_FALLBACK_SETS);
 			
 			
 			/*--------------------------------------------------------------------------------------------------------------
@@ -267,14 +191,14 @@ public class VkContext  implements GLFWGraphicsContext
 				throw new IllegalStateException("glfwGetRequiredInstanceExtensions failed to find the platform surface extensions.");
 			for (int i = 0; i < requiredExtensions.capacity(); i ++)
 				extensionNames.put(requiredExtensions.get(i));
-			check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, null));
+			sys.check(VK10.vkEnumerateInstanceExtensionProperties((String)null, sys.intParam, null));
 			
-			if (intParam.get(0) != 0)
+			if (sys.intParam.get(0) != 0)
 			{
-				VkExtensionProperties.Buffer instanceExtensions = VkExtensionProperties.mallocStack(intParam.get(0), stack);
-				check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, instanceExtensions));
+				VkExtensionProperties.Buffer instanceExtensions = VkExtensionProperties.mallocStack(sys.intParam.get(0), stack);
+				sys.check(VK10.vkEnumerateInstanceExtensionProperties((String)null, sys.intParam, instanceExtensions));
 				
-				for (int i = 0; i < intParam.get(0); i ++)
+				for (int i = 0; i < sys.intParam.get(0); i ++)
 				{
 					instanceExtensions.position(i);
 					if (EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME.equals(instanceExtensions.extensionNameString()))
@@ -303,7 +227,7 @@ public class VkContext  implements GLFWGraphicsContext
 					.pNext(MemoryUtil.NULL)
 					.flags(0)
 					.pApplicationInfo(app)
-					.ppEnabledLayerNames(requiredLayers)
+					.ppEnabledLayerNames(layers)
 					.ppEnabledExtensionNames(extensionNames);
 			extensionNames.clear();
 			
@@ -319,7 +243,7 @@ public class VkContext  implements GLFWGraphicsContext
 			/*--------------------------------------------------------------------------------------------------------------
 			 											  INSTANCE CREATION
 			--------------------------------------------------------------------------------------------------------------*/
-			int err = VK10.vkCreateInstance(instanceInfo, null, pointerParam);
+			int err = VK10.vkCreateInstance(instanceInfo, null, sys.pointerParam);
 			
 			switch (err)
 			{
@@ -334,18 +258,18 @@ public class VkContext  implements GLFWGraphicsContext
 							+ "client driver (ICD) installed?");
 			}
 			
-			instance = new VkInstance(pointerParam.get(0), instanceInfo);
+			instance = new VkInstance(sys.pointerParam.get(0), instanceInfo);
 			
 			
 			/*--------------------------------------------------------------------------------------------------------------
 			 											  PHYSICAL DEVICES
 			--------------------------------------------------------------------------------------------------------------*/
-			check(VK10.vkEnumeratePhysicalDevices(instance, intParam, null));
+			sys.check(VK10.vkEnumeratePhysicalDevices(instance, sys.intParam, null));
 			
-			if (intParam.get(0) > 0)
+			if (sys.intParam.get(0) > 0)
 			{
-				PointerBuffer physicalDevices = stack.mallocPointer(intParam.get(0));
-				check(VK10.vkEnumeratePhysicalDevices(instance, intParam, physicalDevices));
+				PointerBuffer physicalDevices = stack.mallocPointer(sys.intParam.get(0));
+				sys.check(VK10.vkEnumeratePhysicalDevices(instance, sys.intParam, physicalDevices));
 				physicalDevice = new VkPhysicalDevice(physicalDevices.get(0), instance);
 			} else
 				throw new IllegalStateException("vkEnumeratePhysicalDevices reported zero accessible devices.");
@@ -355,14 +279,14 @@ public class VkContext  implements GLFWGraphicsContext
 			 										     SWAPCHAIN EXTENSION
 			--------------------------------------------------------------------------------------------------------------*/
 			boolean swapchainExtFound = false;
-			check(VK10.vkEnumerateDeviceExtensionProperties(physicalDevice, (String)null, intParam, null));
+			sys.check(VK10.vkEnumerateDeviceExtensionProperties(physicalDevice, (String)null, sys.intParam, null));
 			
-			if (intParam.get(0) > 0)
+			if (sys.intParam.get(0) > 0)
 			{
-				VkExtensionProperties.Buffer deviceExtensions = VkExtensionProperties.mallocStack(intParam.get(0), stack);
-				check(VK10.vkEnumerateDeviceExtensionProperties(physicalDevice, (String)null, intParam, deviceExtensions));
+				VkExtensionProperties.Buffer deviceExtensions = VkExtensionProperties.mallocStack(sys.intParam.get(0), stack);
+				sys.check(VK10.vkEnumerateDeviceExtensionProperties(physicalDevice, (String)null, sys.intParam, deviceExtensions));
 				
-				for (int i = 0; i < intParam.get(0); i ++)
+				for (int i = 0; i < sys.intParam.get(0); i ++)
 				{
 					deviceExtensions.position(i);
 
@@ -377,12 +301,12 @@ public class VkContext  implements GLFWGraphicsContext
 			if (!swapchainExtFound)
 				throw new IllegalStateException("vkEnumerateDeviceExtensionProperties failed to find the "
 						+ KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME + " extension.");
-			err = EXTDebugReport.vkCreateDebugReportCallbackEXT(instance, debugCreateInfo, null, longParam);
+			err = EXTDebugReport.vkCreateDebugReportCallbackEXT(instance, debugCreateInfo, null, sys.longParam);
 			
 			switch (err)
 			{
 			case VK10.VK_SUCCESS:
-				messageCallback = longParam.get(0);
+				messageCallback = sys.longParam.get(0);
 				break;
 			case VK10.VK_ERROR_OUT_OF_HOST_MEMORY:
 				throw new IllegalStateException("CreateDebugReportCallback: out of host memory");
@@ -395,11 +319,11 @@ public class VkContext  implements GLFWGraphicsContext
 			 										  DEVICE PROPERTIES/FEATURES
 			--------------------------------------------------------------------------------------------------------------*/
 			VK10.vkGetPhysicalDeviceProperties(physicalDevice, deviceProperties);
-			VK10.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, intParam, null);
+			VK10.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, sys.intParam, null);
 			
-			queueProps = VkQueueFamilyProperties.malloc(intParam.get(0));
-			VK10.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, intParam, queueProps);
-			if (intParam.get(0) == 0)
+			queueProps = VkQueueFamilyProperties.malloc(sys.intParam.get(0));
+			VK10.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, sys.intParam, queueProps);
+			if (sys.intParam.get(0) == 0)
 				throw new IllegalStateException("Physical device queue family properties is empty.");
 			VK10.vkGetPhysicalDeviceFeatures(physicalDevice, deviceFeatures);
 		}
@@ -409,6 +333,8 @@ public class VkContext  implements GLFWGraphicsContext
 	{
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
+			VkSys sys = new VkSys(stack);
+			
 			VkDeviceQueueCreateInfo.Buffer queue = VkDeviceQueueCreateInfo.mallocStack(1, stack)
 					.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO)
 					.pNext(MemoryUtil.NULL)
@@ -430,18 +356,21 @@ public class VkContext  implements GLFWGraphicsContext
 					.ppEnabledExtensionNames(extensionNames)
 					.pEnabledFeatures(features);
 			
-			check(VK10.vkCreateDevice(physicalDevice, device, null, pointerParam));
-			this.device = new VkDevice(pointerParam.get(0), physicalDevice, device);
+			sys.check(VK10.vkCreateDevice(physicalDevice, device, null, sys.pointerParam));
+			this.device = new VkDevice(sys.pointerParam.get(0), physicalDevice, device);
 		}
 	}
 	
 	private void initVkSwapchain()
 	{
-		GLFWVulkan.glfwCreateWindowSurface(instance, window.pointer(), null, longParam);
-		surface = longParam.get(0);
 		
 		try (MemoryStack stack = MemoryStack.stackPush())
 		{
+			VkSys sys = new VkSys(stack);
+			
+			GLFWVulkan.glfwCreateWindowSurface(instance, window.pointer(), null, sys.longParam);
+			surface = sys.longParam.get(0);
+			
 			IntBuffer supportsPresent = stack.mallocInt(queueProps.capacity());
 			int graphicsQueueNodeIndex;
 			int presentQueueNodeIndex;
@@ -484,18 +413,18 @@ public class VkContext  implements GLFWGraphicsContext
 			this.graphicsQueueNodeIndex = graphicsQueueNodeIndex;
 			this.initDevice();
 			
-			VK10.vkGetDeviceQueue(device, graphicsQueueNodeIndex, 0, pointerParam);
-			queue = new VkQueue(pointerParam.get(0), device);
+			VK10.vkGetDeviceQueue(device, graphicsQueueNodeIndex, 0, sys.pointerParam);
+			queue = new VkQueue(sys.pointerParam.get(0), device);
 			
-			check(KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, intParam, null));
-			VkSurfaceFormatKHR.Buffer surfaceFormats = VkSurfaceFormatKHR.mallocStack(intParam.get(0), stack);
-			check(KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, intParam, surfaceFormats));
+			sys.check(KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, sys.intParam, null));
+			VkSurfaceFormatKHR.Buffer surfaceFormats = VkSurfaceFormatKHR.mallocStack(sys.intParam.get(0), stack);
+			sys.check(KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, sys.intParam, surfaceFormats));
 			
-			if (intParam.get(0) == 1 && surfaceFormats.get(0).format() == VK10.VK_FORMAT_UNDEFINED)
+			if (sys.intParam.get(0) == 1 && surfaceFormats.get(0).format() == VK10.VK_FORMAT_UNDEFINED)
 				format = VK10.VK_FORMAT_B8G8R8A8_UNORM;
 			else
 			{
-				assert intParam.get(0) >= 1;
+				assert sys.intParam.get(0) >= 1;
 				format = surfaceFormats.get(0).format();
 			}
 			
