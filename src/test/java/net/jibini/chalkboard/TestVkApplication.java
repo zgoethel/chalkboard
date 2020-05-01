@@ -17,7 +17,9 @@ public class TestVkApplication
 				.withTitle("Test Window (Vk)")
 				.createLifecycle(() ->
 				{
-					
+					System.out.println(context.name() + " (" + context.version() + ")");
+					System.out.println(context.createWindowService().name()
+							+ " (" + context.createWindowService().version() + ")");
 				}, () ->
 				{
 					

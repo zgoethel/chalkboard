@@ -22,8 +22,8 @@ public class GLFWWindow
 	{
 		this.pointer = GLFW.glfwCreateWindow(width, height, title, 0L, 0L);
 		this.makeCurrent();
-		context.generate();
-		
+		context.initializeOnce()
+				.generate();
 		return this;
 	}
 
@@ -64,8 +64,6 @@ public class GLFWWindow
 	}
 	
 	public GLFWWindow<CONTEXT> makeCurrent() { context.makeCurrent(this); return this; }
-	
-	public GLFWWindow<CONTEXT> initContext() { context.initializeOnce(); return this; }
 	
 	
 	public GLFWLifecycle<CONTEXT> createLifecycle(Runnable setup, Runnable update, Runnable destroy)

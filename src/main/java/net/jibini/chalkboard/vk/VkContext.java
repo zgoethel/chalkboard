@@ -10,6 +10,7 @@ import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.EXTDebugReport;
+import org.lwjgl.vulkan.KHRSurface;
 import org.lwjgl.vulkan.KHRSwapchain;
 import org.lwjgl.vulkan.VK;
 import org.lwjgl.vulkan.VK10;
@@ -26,9 +27,11 @@ import org.lwjgl.vulkan.VkInstanceCreateInfo;
 import org.lwjgl.vulkan.VkLayerProperties;
 import org.lwjgl.vulkan.VkPhysicalDevice;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
+import org.lwjgl.vulkan.VkPhysicalDeviceMemoryProperties;
 import org.lwjgl.vulkan.VkPhysicalDeviceProperties;
 import org.lwjgl.vulkan.VkQueue;
 import org.lwjgl.vulkan.VkQueueFamilyProperties;
+import org.lwjgl.vulkan.VkSurfaceFormatKHR;
 
 import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
 import net.jibini.chalkboard.glfw.GLFWWindow;
@@ -116,6 +119,12 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	private VkDevice						device;
 	private VkQueue							queue;
 	
+	private int								format;
+	private int								colorSpace;
+	
+	// Messing up my formatting. :'(
+	private VkPhysicalDeviceMemoryProperties memoryProperties 		= VkPhysicalDeviceMemoryProperties.malloc();
+	
 	private long							commandPool;
 	private VkCommandBuffer					drawCommand;
 	
@@ -139,6 +148,8 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	private long							descSet;
 	
 	private LongBuffer						framebuffers;
+	
+	private GLFWWindow<?>					window;
 	
 	
 	private final VkDebugReportCallbackEXT dbgFunc = VkDebugReportCallbackEXT
@@ -423,7 +434,71 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	
 	private void initVkSwapchain()
 	{
+		GLFWVulkan.glfwCreateWindowSurface(instance, window.pointer(), null, longParam);
+		surface = longParam.get(0);
 		
+		try (MemoryStack stack = MemoryStack.stackPush())
+		{
+			IntBuffer supportsPresent = stack.mallocInt(queueProps.capacity());
+			int graphicsQueueNodeIndex;
+			int presentQueueNodeIndex;
+			
+			for (int i = 0; i < supportsPresent.capacity(); i ++)
+			{
+				supportsPresent.position(i);
+				KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, supportsPresent);
+			}
+			
+			graphicsQueueNodeIndex = Integer.MAX_VALUE;
+			presentQueueNodeIndex = Integer.MAX_VALUE;
+			
+			for (int i = 0; i < supportsPresent.capacity(); i ++)
+				if ((queueProps.get(i).queueFlags() & VK10.VK_QUEUE_GRAPHICS_BIT) != 0)
+				{
+					if (graphicsQueueNodeIndex == Integer.MAX_VALUE)
+						graphicsQueueNodeIndex = i;
+					
+					if (supportsPresent.get(i) == VK10.VK_TRUE)
+					{
+						graphicsQueueNodeIndex = i;
+						presentQueueNodeIndex = i;
+						break;
+					}
+				}
+			
+			if (presentQueueNodeIndex == Integer.MAX_VALUE)
+				for (int i = 0; i < supportsPresent.capacity(); i ++)
+					if (supportsPresent.get(i) == VK10.VK_TRUE)
+					{
+						presentQueueNodeIndex = i;
+						break;
+					}
+			if (graphicsQueueNodeIndex == Integer.MAX_VALUE || presentQueueNodeIndex == Integer.MAX_VALUE)
+				throw new IllegalStateException("Could not find a graphics and a present queue.");
+			if (graphicsQueueNodeIndex != presentQueueNodeIndex)
+				throw new IllegalStateException("Could not find a common graphics and a present queue.");
+			
+			this.graphicsQueueNodeIndex = graphicsQueueNodeIndex;
+			this.initDevice();
+			
+			VK10.vkGetDeviceQueue(device, graphicsQueueNodeIndex, 0, pointerParam);
+			queue = new VkQueue(pointerParam.get(0), device);
+			
+			check(KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, intParam, null));
+			VkSurfaceFormatKHR.Buffer surfaceFormats = VkSurfaceFormatKHR.mallocStack(intParam.get(0), stack);
+			check(KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, intParam, surfaceFormats));
+			
+			if (intParam.get(0) == 1 && surfaceFormats.get(0).format() == VK10.VK_FORMAT_UNDEFINED)
+				format = VK10.VK_FORMAT_B8G8R8A8_UNORM;
+			else
+			{
+				assert intParam.get(0) >= 1;
+				format = surfaceFormats.get(0).format();
+			}
+			
+			colorSpace = surfaceFormats.get(0).colorSpace();
+			VK10.vkGetPhysicalDeviceMemoryProperties(physicalDevice, memoryProperties);
+		}
 	}
 
 	@Override
@@ -432,7 +507,6 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 		if (!GLFWVulkan.glfwVulkanSupported())
 			throw new IllegalStateException("Cannot find a compatible Vulkan installable client driver (ICD)");
 		initVk();
-		initDevice();
 		return this;
 	}
 	
@@ -446,14 +520,12 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	@Override
 	public VkContext destroy()
 	{
+		
 		return this;
 	}
 
 	@Override
-	public String name()
-	{
-		return "Vulkan";
-	}
+	public String name() { return "Vulkan"; }
 
 	@Override
 	public String version()
@@ -485,7 +557,7 @@ public class VkContext implements GLFWGraphicsContext<VkPipeline, GLFWWindowServ
 	@Override
 	public VkContext makeCurrent(GLFWWindow<?> window)
 	{
-		
+		this.window = window;
 		return this;
 	}
 

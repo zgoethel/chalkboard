@@ -19,7 +19,6 @@ public abstract class GLFWLifecycle
 	public GLFWLifecycle<CONTEXT> initContext()
 	{
 		window.generate();
-		window.initContext();
 		return this;
 	}
 
