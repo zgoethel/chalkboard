@@ -2,48 +2,35 @@ package net.jibini.chalkboard.life;
 
 import net.jibini.chalkboard.object.Conversational;
 
-// Replace with GLFW callbacks
-@Deprecated
 public interface Lifecycle<THIS extends Lifecycle<THIS>>
-		extends Conversational<THIS>
+		extends Conversational<THIS>,
+			InitTasks<THIS>, UpdateTasks<THIS>, DestroyTasks<THIS>
 {
 	THIS initContext();
 	
-	THIS setup();
-	
-	
-	THIS preUpdate();
-	
-	THIS update();
-	
-	THIS postUpdate();
-	
-	
-	THIS destroy();
-	
-	THIS postDestroy();
-	
-	
 	boolean isAlive();
-	
+
 	default THIS start()
 	{
-		this.initContext();
-		this.setup();
+		this.preInit()
+				.initContext()
+				.init()
+				.postInit();
 		
-		while (isAlive())
+		while (this.isAlive())
 		{
-			this.preUpdate();
-			this.update();
-			this.postUpdate();
+			this.preUpdate()
+					.update()
+					.postUpdate();
 		}
 		
-		this.destroy();
-		this.postDestroy();
+		this.preDestroy()
+				.destroy()
+				.postDestroy();
 		
 		return self();
 	}
-	
+
 	default Thread spawnThread()
 	{
 		Thread t = new Thread(this::start);

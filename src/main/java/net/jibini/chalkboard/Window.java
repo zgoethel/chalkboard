@@ -6,10 +6,10 @@ import net.jibini.chalkboard.object.Generatable;
 
 public interface Window
 		<
-			CONTEXT extends GraphicsContext<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>,
-			PIPELINE extends GraphicsPipeline<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>,
-			WINDOWSERV extends WindowService<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>,
-			WINDOW extends Window<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>
+			CONTEXT		extends GraphicsContext	<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>,
+			PIPELINE	extends GraphicsPipeline<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>,
+			WINDOWSERV	extends WindowService	<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>,
+			WINDOW		extends Window			<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>
 		>
 		extends Generatable<WINDOW>, Destroyable<WINDOW>, Conversational<WINDOW>
 {
@@ -22,7 +22,5 @@ public interface Window
 	
 	WINDOW attachContext(CONTEXT context);
 	
-	WINDOW prepareRender();
-	
-	WINDOW swapBuffers();
+	WINDOW update();
 }

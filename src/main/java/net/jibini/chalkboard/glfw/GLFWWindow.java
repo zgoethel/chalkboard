@@ -7,15 +7,15 @@ import net.jibini.chalkboard.object.Pointer;
 
 public class GLFWWindow
 		<
-			CONTEXT extends GLFWGraphicsContext<CONTEXT, PIPELINE>,
-			PIPELINE extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
+			CONTEXT		extends GLFWGraphicsContext	<CONTEXT, PIPELINE>,
+			PIPELINE	extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
 		>
 		implements Window
 		<
 			CONTEXT,
 			PIPELINE,
-			GLFWWindowService<CONTEXT, PIPELINE>,
-			GLFWWindow<CONTEXT, PIPELINE>
+			GLFWWindowService	<CONTEXT, PIPELINE>,
+			GLFWWindow			<CONTEXT, PIPELINE>
 		>,
 			Pointer<Long>
 {
@@ -23,15 +23,12 @@ public class GLFWWindow
 	private int width = 1280, height = 720;
 	private String title = "GLFW Window";
 	
-	private CONTEXT context = null;
+	private CONTEXT context;
 	
 	@Override
 	public GLFWWindow<CONTEXT, PIPELINE> generate()
 	{
 		this.pointer = GLFW.glfwCreateWindow(width, height, title, 0L, 0L);
-		this.makeCurrent();
-		context.initializeOnce()
-				.generate();
 		return self();
 	}
 
@@ -64,46 +61,35 @@ public class GLFWWindow
 	public boolean shouldClose() { return GLFW.glfwWindowShouldClose(pointer()); }
 
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> prepareRender() { context.prepareRender(self()); return self(); }
-
-	
-	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> swapBuffers()
-	{
-		GLFW.glfwPollEvents();
-		context.swapBuffers(self());
-		return self();
-	}
-	
-	public GLFWWindow<CONTEXT, PIPELINE> makeCurrent() { context.makeCurrent(self()); return self(); }
+	public GLFWWindow<CONTEXT, PIPELINE> update() { GLFW.glfwPollEvents(); return self(); }
 	
 	
-	@Deprecated
-	public GLFWLifecycle<CONTEXT, PIPELINE> createLifecycle(Runnable setup, Runnable update, Runnable destroy)
+	public GLFWLifecycle<CONTEXT, PIPELINE> createLifecycle(Runnable init, Runnable update, Runnable destroy)
 	{
 		return new GLFWLifecycle<CONTEXT, PIPELINE>()
 				{
 					@Override
-					public GLFWLifecycle<CONTEXT, PIPELINE> setup()
+					public GLFWLifecycle<CONTEXT, PIPELINE> init()
 					{
-						setup.run();
-						return this;
+						init.run();
+						return self();
 					}
 
 					@Override
 					public GLFWLifecycle<CONTEXT, PIPELINE> update()
 					{
 						update.run();
-						return this;
+						return self();
 					}
 
 					@Override
 					public GLFWLifecycle<CONTEXT, PIPELINE> destroy()
 					{
 						destroy.run();
-						return this;
+						return self();
 					}
 				}
-				.withWindow(self());
+				.withWindow(self())
+				.withContext(context);
 	}
 }

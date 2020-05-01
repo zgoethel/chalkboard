@@ -6,6 +6,7 @@ import java.nio.LongBuffer;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.Version;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -36,7 +37,6 @@ import org.lwjgl.vulkan.VkSurfaceFormatKHR;
 import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
 import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
-import net.jibini.chalkboard.object.Initializable;
 
 /*
  * Copyright (c) 2015-2016 The Khronos Group Inc.
@@ -79,8 +79,7 @@ public class VkContext  implements GLFWGraphicsContext
 		<
 			VkContext,
 			VkPipeline
-		>,
-		Initializable<VkContext>
+		>
 {
 	private static final ByteBuffer KHR_swapchain    = MemoryUtil.memASCII(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	private static final ByteBuffer EXT_debug_report = MemoryUtil.memASCII(EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -511,21 +510,27 @@ public class VkContext  implements GLFWGraphicsContext
 		if (!GLFWVulkan.glfwVulkanSupported())
 			throw new IllegalStateException("Cannot find a compatible Vulkan installable client driver (ICD)");
 		initVk();
-		return this;
+		return self();
+	}
+	
+	public VkContext attachWindow(GLFWWindow<VkContext, VkPipeline> window)
+	{
+		this.window = window;
+		return self();
 	}
 	
 	@Override
 	public VkContext generate()
 	{
 		initVkSwapchain();
-		return this;
+		return self();
 	}
 
 	@Override
 	public VkContext destroy()
 	{
 		
-		return this;
+		return self();
 	}
 
 	@Override
@@ -552,30 +557,30 @@ public class VkContext  implements GLFWGraphicsContext
 	public GLFWWindowService<VkContext, VkPipeline> createWindowService()
 	{
 		return new GLFWWindowService<VkContext, VkPipeline>()
-				.attachContext(this)
+				.attachContext(self())
 				.initializeOnce()
 				
-				.withNoAPI();
+				.hint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
 	}
 	
 	@Override
-	public VkContext makeCurrent(GLFWWindow<VkContext, VkPipeline> window)
+	public VkContext makeCurrent()
 	{
-		this.window = window;
-		return this;
+		
+		return self();
 	}
 
 	@Override
-	public VkContext prepareRender(GLFWWindow<VkContext, VkPipeline> window)
+	public VkContext prepareRender()
 	{
 		
-		return this;
+		return self();
 	}
 
 	@Override
-	public VkContext swapBuffers(GLFWWindow<VkContext, VkPipeline> window)
+	public VkContext swapBuffers()
 	{
 		
-		return this;
+		return self();
 	}
 }

@@ -8,7 +8,6 @@ import net.jibini.chalkboard.lwjgl.GLContext;
 public class TestGLApplication
 {
 	@Test
-	@Deprecated
 	public void openGLContext() throws InterruptedException
 	{
 		GLContext context = new GLContext();
