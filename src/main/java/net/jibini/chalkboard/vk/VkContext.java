@@ -1,6 +1,5 @@
 package net.jibini.chalkboard.vk;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
@@ -15,16 +14,12 @@ import org.lwjgl.vulkan.KHRSurface;
 import org.lwjgl.vulkan.KHRSwapchain;
 import org.lwjgl.vulkan.VK;
 import org.lwjgl.vulkan.VK10;
-import org.lwjgl.vulkan.VkApplicationInfo;
 import org.lwjgl.vulkan.VkCommandBuffer;
-import org.lwjgl.vulkan.VkDebugReportCallbackCreateInfoEXT;
-import org.lwjgl.vulkan.VkDebugReportCallbackEXT;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkDeviceCreateInfo;
 import org.lwjgl.vulkan.VkDeviceQueueCreateInfo;
 import org.lwjgl.vulkan.VkExtensionProperties;
 import org.lwjgl.vulkan.VkInstance;
-import org.lwjgl.vulkan.VkInstanceCreateInfo;
 import org.lwjgl.vulkan.VkPhysicalDevice;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 import org.lwjgl.vulkan.VkPhysicalDeviceMemoryProperties;
@@ -38,6 +33,7 @@ import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
 import net.jibini.chalkboard.vk.system.VkSys;
 import net.jibini.chalkboard.vk.system.VkSysExtensions;
+import net.jibini.chalkboard.vk.system.VkSysInstance;
 import net.jibini.chalkboard.vk.system.VkSysLayers;
 
 /*
@@ -146,98 +142,34 @@ public class VkContext  implements GLFWGraphicsContext
 	
 	private LongBuffer							framebuffers;
 	
+	
+	
 	private GLFWWindow<VkContext, VkPipeline>	window;
-
-	private MemoryStack							contextStack			= MemoryStack.create();
-	private VkSysLayers							layers;
-	private VkSysExtensions						extensions;
+	private final MemoryStack					contextStack			= MemoryStack.create();
+	
+	private final VkSysLayers					sys_layers				= new VkSysLayers(contextStack);
+	private final VkSysExtensions				sys_extensions			= new VkSysExtensions(contextStack);
+	private final VkSysInstance					sys_instance			= new VkSysInstance(contextStack);
 	
 	
-	private final VkDebugReportCallbackEXT dbgFunc = VkDebugReportCallbackEXT
-			.create((flags, objectType, object, location, messageCode, pLayerPrefix, pMessage, pUserData) ->
-			{
-				String type;
-				if ((flags & EXTDebugReport.VK_DEBUG_REPORT_INFORMATION_BIT_EXT) != 0)
-					type = "INFORMATION";
-				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_WARNING_BIT_EXT) != 0)
-					type = "WARNING";
-				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) != 0)
-					type = "PERFORMANCE WARNING";
-				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_ERROR_BIT_EXT) != 0)
-					type = "ERROR";
-				else if ((flags & EXTDebugReport.VK_DEBUG_REPORT_DEBUG_BIT_EXT) != 0)
-					type = "DEBUG";
-				else
-					type = "UNKNOWN";
-
-				System.err.format("%s: [%s] Code %d : %s\n", type, MemoryUtil.memASCII(pLayerPrefix), messageCode,
-						VkDebugReportCallbackEXT.getString(pMessage));
-				return VK10.VK_FALSE;
-			});
+	
 	
 	private void initVk()
 	{
 		try (MemoryStack stack = contextStack.push())
 		{
 			VkSys sys = new VkSys(stack) { };
-			layers = new VkSysLayers(stack)
-					.checkLayers(VkSysLayers.VALIDATION_FALLBACK_SETS); // Validation only
-			extensions = new VkSysExtensions(stack)
-					.addRequiredExtensions()
-					.addIfFound(VkSysExtensions.EXT_DEBUG_REPORT); // Validation only
-			
-			
-			/*--------------------------------------------------------------------------------------------------------------
-			 											   APPLICATION/INSTANCE
-			--------------------------------------------------------------------------------------------------------------*/
-			ByteBuffer APP_SHORT_NAME = stack.UTF8("chb");
-			
-			VkApplicationInfo app = VkApplicationInfo.mallocStack(stack)
-					.sType(VK10.VK_STRUCTURE_TYPE_APPLICATION_INFO)
-					.pNext(MemoryUtil.NULL)
-					.pApplicationName(APP_SHORT_NAME)
-					.applicationVersion(0)
-					.pEngineName(APP_SHORT_NAME)
-					.engineVersion(0)
-					.apiVersion(VK.getInstanceVersionSupported());
-			
-			extensions.extensions.flip();
-			VkInstanceCreateInfo instanceInfo = VkInstanceCreateInfo.mallocStack(stack)
-					.sType(VK10.VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO)
-					.pNext(MemoryUtil.NULL)
-					.flags(0)
-					.pApplicationInfo(app)
-					.ppEnabledLayerNames(layers.layers)
-					.ppEnabledExtensionNames(extensions.extensions);
-			extensions.extensions.clear();
-			
-			VkDebugReportCallbackCreateInfoEXT debugCreateInfo = VkDebugReportCallbackCreateInfoEXT.mallocStack(stack)
-					.sType(EXTDebugReport.VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT)
-					.pNext(MemoryUtil.NULL)
-					.flags(EXTDebugReport.VK_DEBUG_REPORT_ERROR_BIT_EXT | EXTDebugReport.VK_DEBUG_REPORT_WARNING_BIT_EXT)
-					.pfnCallback(dbgFunc)
-					.pUserData(MemoryUtil.NULL);
-			instanceInfo.pNext(debugCreateInfo.address());
-			
-			/*--------------------------------------------------------------------------------------------------------------
-			 											  INSTANCE CREATION
-			--------------------------------------------------------------------------------------------------------------*/
-			int err = VK10.vkCreateInstance(instanceInfo, null, sys.pointerParam);
+			sys_layers.checkLayers(VkSysLayers.VALIDATION_FALLBACK_SETS) // Validation only
+					.flipBuffer();
+			sys_extensions.checkRequiredExtensions()
+					.checkExtension(VkSysExtensions.EXT_DEBUG_REPORT) // Validation only
+					.flipBuffer();
+			sys_instance.enableLayers(sys_layers)
+					.enableExtensions(sys_extensions)
+					.enableDebug(); // Validation only
 
-			switch (err)
-			{
-			case VK10.VK_ERROR_INCOMPATIBLE_DRIVER:
-				throw new IllegalStateException("Cannot find a compatible Vulkan installable client driver (ICD).");
-			case VK10.VK_ERROR_EXTENSION_NOT_PRESENT:
-				throw new IllegalStateException("Cannot find a specified extension library. Make sure your layers path "
-						+ "is set appropriately.");
-			default:
-				if (err != 0)
-					throw new IllegalStateException("vkCreateInstance failed. Do you have a compatible Vulkan installable "
-							+ "client driver (ICD) installed?");
-			}
-			
-			instance = new VkInstance(sys.pointerParam.get(0), instanceInfo);
+			instance = sys_instance.generateInstance();
+			sys_extensions.extensions.clear();
 			
 			
 			/*--------------------------------------------------------------------------------------------------------------
@@ -272,7 +204,7 @@ public class VkContext  implements GLFWGraphicsContext
 					if (KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME.equals(deviceExtensions.extensionNameString()))
 					{
 						swapchainExtFound = true;
-						extensions.extensions.put(stack.ASCII(VkSysExtensions.KHR_SWAPCHAIN));
+						sys_extensions.extensions.put(stack.ASCII(VkSysExtensions.KHR_SWAPCHAIN));
 					}
 				}
 			}
@@ -280,18 +212,7 @@ public class VkContext  implements GLFWGraphicsContext
 			if (!swapchainExtFound)
 				throw new IllegalStateException("vkEnumerateDeviceExtensionProperties failed to find the "
 						+ KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME + " extension.");
-			err = EXTDebugReport.vkCreateDebugReportCallbackEXT(instance, debugCreateInfo, null, sys.longParam);
-			
-			switch (err)
-			{
-			case VK10.VK_SUCCESS:
-				messageCallback = sys.longParam.get(0);
-				break;
-			case VK10.VK_ERROR_OUT_OF_HOST_MEMORY:
-				throw new IllegalStateException("CreateDebugReportCallback: out of host memory");
-			default:
-				throw new IllegalStateException("CreateDebugReportCallback: unknown failure");
-            }
+			sys_instance.createDebugCallback(instance);
 			
 			
 			/*--------------------------------------------------------------------------------------------------------------
@@ -325,14 +246,14 @@ public class VkContext  implements GLFWGraphicsContext
 			if (deviceFeatures.shaderClipDistance())
 				features.shaderClipDistance(true);
 			
-			extensions.extensions.flip();
+			sys_extensions.extensions.flip();
 			VkDeviceCreateInfo device = VkDeviceCreateInfo.mallocStack(stack)
 					.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO)
 					.pNext(MemoryUtil.NULL)
 					.flags(0)
 					.pQueueCreateInfos(queue)
 					.ppEnabledLayerNames(null)
-					.ppEnabledExtensionNames(extensions.extensions)
+					.ppEnabledExtensionNames(sys_extensions.extensions)
 					.pEnabledFeatures(features);
 			
 			sys.check(VK10.vkCreateDevice(physicalDevice, device, null, sys.pointerParam));

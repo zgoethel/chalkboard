@@ -18,39 +18,50 @@ public class VkSysExtensions extends VkSys<VkSysExtensions>
 	public VkSysExtensions(MemoryStack stack)
 	{
 		super(stack);
+		
 		extensions = stack.mallocPointer(64);
 	}
 	
-	public VkSysExtensions addRequiredExtensions()
+	public VkSysExtensions checkRequiredExtensions()
 	{
 		PointerBuffer requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions();
 		if (requiredExtensions == null)
 			throw new IllegalStateException("glfwGetRequiredInstanceExtensions failed to find the platform surface extensions.");
 		for (int i = 0; i < requiredExtensions.capacity(); i++)
-			extensions.put(requiredExtensions.get(i));
+			checkExtension(requiredExtensions.getStringASCII(i));
 		return self();
 	}
 	
-	public VkSysExtensions addIfFound(String extension)
+	public VkSysExtensions checkExtension(String extension)
 	{
-		try (MemoryStack stack = this.stack.push())
+		check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, null));
+		
+		if (intParam.get(0) != 0)
 		{
-			check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, null));
+			VkExtensionProperties.Buffer instanceExtensions = VkExtensionProperties.mallocStack(intParam.get(0), stack);
+			check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, instanceExtensions));
 			
-			if (intParam.get(0) != 0)
+			for (int i = 0; i < intParam.get(0); i++)
 			{
-				VkExtensionProperties.Buffer instanceExtensions = VkExtensionProperties.mallocStack(intParam.get(0), stack);
-				check(VK10.vkEnumerateInstanceExtensionProperties((String)null, intParam, instanceExtensions));
+				instanceExtensions.position(i);
 				
-				for (int i = 0; i < intParam.get(0); i++)
+				if (extension.equals(instanceExtensions.extensionNameString()))
 				{
-					instanceExtensions.position(i);
-					if (extension.equals(instanceExtensions.extensionNameString()))
-						extensions.put(stack.ASCII(extension));
+					extensions.put(stack.ASCII(extension));
+					return self();
 				}
 			}
-		}
+
+			throw new IllegalStateException("vkEnumerateInstanceExtensionProperties failed to find extension '" + extension + "'.");
+		} else
+			System.err.println("vkEnumerateInstanceExtensionProperties found no extensions.");
 		
+		return self();
+	}
+	
+	public VkSysExtensions flipBuffer()
+	{
+		extensions.flip();
 		return self();
 	}
 }

@@ -20,18 +20,20 @@ public class VkSysLayers extends VkSys<VkSysLayers>
 				},
 		};
 	
-	public PointerBuffer layers = null;
+	public final PointerBuffer layers;
 	
 	public VkSysLayers(MemoryStack stack)
 	{
 		super(stack);
+		
+		layers = stack.mallocPointer(64);
 	}
 	
-	public boolean checkLayer(VkLayerProperties.Buffer available, int i, String layer)
+	public boolean checkLayer(VkLayerProperties.Buffer available, String layer)
 	{
-		for (int j = 0; j < available.capacity(); j++)
+		for (int i = 0; i < available.capacity(); i++)
 		{
-			available.position(j);
+			available.position(i);
 			if (layer.equals(available.layerNameString()))
 				return true;
 		}
@@ -43,10 +45,9 @@ public class VkSysLayers extends VkSys<VkSysLayers>
 	public boolean checkLayers(VkLayerProperties.Buffer available, String ... layers)
 	{
 		for (int i = 0; i < layers.length; i++)
-			if (!checkLayer(available, i, layers[i]))
+			if (!checkLayer(available, layers[i]))
 				return false;
 
-		this.layers = stack.mallocPointer(layers.length);
 		for (int i = 0; i < layers.length; i++)
 			this.layers.put(stack.ASCII(layers[i]));
 		return true;
@@ -68,6 +69,12 @@ public class VkSysLayers extends VkSys<VkSysLayers>
 		} else
 			System.err.println("vkEnumerateInstanceLayerProperties found no layers.");
 		
+		return self();
+	}
+	
+	public VkSysLayers flipBuffer()
+	{
+		layers.flip();
 		return self();
 	}
 }
