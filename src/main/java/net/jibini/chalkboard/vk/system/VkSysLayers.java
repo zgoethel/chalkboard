@@ -5,10 +5,8 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkLayerProperties;
 
-public class VkSysLayers
+public class VkSysLayers extends VkSys<VkSysLayers>
 {
-	private VkSys sys = new VkSys();
-	
 	public static final String[][] VALIDATION_FALLBACK_SETS = 
 		{
 				new String[] { "VK_LAYER_KHRONOS_validation" },
@@ -22,53 +20,54 @@ public class VkSysLayers
 				},
 		};
 	
-	public boolean checkLayer(PointerBuffer required, MemoryStack stack, VkLayerProperties.Buffer available, int i, String layer)
+	public PointerBuffer layers = null;
+	
+	public VkSysLayers(MemoryStack stack)
+	{
+		super(stack);
+	}
+	
+	public boolean checkLayer(VkLayerProperties.Buffer available, int i, String layer)
 	{
 		for (int j = 0; j < available.capacity(); j++)
 		{
 			available.position(j);
-			
 			if (layer.equals(available.layerNameString()))
-			{
-				required.put(i, stack.ASCII(layer));
 				return true;
-			}
 		}
 
 		System.err.format("Cannot find layer: %s\n", layer);
 		return false;
 	}
 	
-	public PointerBuffer checkLayers(MemoryStack stack, VkLayerProperties.Buffer available, String ... layers)
+	public boolean checkLayers(VkLayerProperties.Buffer available, String ... layers)
 	{
-		PointerBuffer required = stack.mallocPointer(layers.length);
 		for (int i = 0; i < layers.length; i++)
-			if (!checkLayer(required, stack, available, i, layers[i]))
-				return null;
-		return required;
+			if (!checkLayer(available, i, layers[i]))
+				return false;
+
+		this.layers = stack.mallocPointer(layers.length);
+		for (int i = 0; i < layers.length; i++)
+			this.layers.put(stack.ASCII(layers[i]));
+		return true;
 	}
 	
-	public PointerBuffer checkLayers(MemoryStack stack, String[] ... fallbackSets)
+	public VkSysLayers checkLayers(String[] ... fallbackSets)
 	{
-		PointerBuffer requiredLayers = null;
-		sys.check(VK10.vkEnumerateInstanceLayerProperties(sys.intParam, null));
+		check(VK10.vkEnumerateInstanceLayerProperties(intParam, null));
 		
-		if (sys.intParam.get(0) > 0)
+		if (intParam.get(0) > 0)
 		{
-			VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(sys.intParam.get(0), stack);
-			sys.check(VK10.vkEnumerateInstanceLayerProperties(sys.intParam, availableLayers));
+			VkLayerProperties.Buffer availableLayers = VkLayerProperties.mallocStack(intParam.get(0), stack);
+			check(VK10.vkEnumerateInstanceLayerProperties(intParam, availableLayers));
 			
 			for (String[] set : fallbackSets)
-			{
-				requiredLayers = checkLayers(stack, availableLayers, set);
-				if (requiredLayers != null)
-					break;
-			}
-			
-			if (requiredLayers == null)
-				throw new IllegalStateException("vkEnumerateInstanceLayerProperties failed to find required validation layer.");
+				if(checkLayers(availableLayers, set))
+					return self();
+			throw new IllegalStateException("vkEnumerateInstanceLayerProperties failed to find primary or fallback layers.");
 		} else
 			System.err.println("vkEnumerateInstanceLayerProperties found no layers.");
-		return requiredLayers;
+		
+		return self();
 	}
 }

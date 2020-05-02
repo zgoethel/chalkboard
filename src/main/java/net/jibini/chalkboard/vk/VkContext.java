@@ -25,7 +25,6 @@ import org.lwjgl.vulkan.VkDeviceQueueCreateInfo;
 import org.lwjgl.vulkan.VkExtensionProperties;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkInstanceCreateInfo;
-import org.lwjgl.vulkan.VkLayerProperties;
 import org.lwjgl.vulkan.VkPhysicalDevice;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 import org.lwjgl.vulkan.VkPhysicalDeviceMemoryProperties;
@@ -38,6 +37,7 @@ import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
 import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
 import net.jibini.chalkboard.vk.system.VkSys;
+import net.jibini.chalkboard.vk.system.VkSysExtensions;
 import net.jibini.chalkboard.vk.system.VkSysLayers;
 
 /*
@@ -83,8 +83,6 @@ public class VkContext  implements GLFWGraphicsContext
 			VkPipeline
 		>
 {
-	private static final ByteBuffer KHR_swapchain    = MemoryUtil.memASCII(KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-	private static final ByteBuffer EXT_debug_report = MemoryUtil.memASCII(EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 	
 	
 	private static class SwapchainBuffer
@@ -107,8 +105,6 @@ public class VkContext  implements GLFWGraphicsContext
 	
 	private VkPhysicalDeviceProperties			deviceProperties		= VkPhysicalDeviceProperties.malloc();
 	private VkPhysicalDeviceFeatures			deviceFeatures			= VkPhysicalDeviceFeatures.malloc();
-	
-	private PointerBuffer						extensionNames			= MemoryUtil.memAllocPointer(64);
 	
 	private long								messageCallback;
 	
@@ -151,6 +147,10 @@ public class VkContext  implements GLFWGraphicsContext
 	private LongBuffer							framebuffers;
 	
 	private GLFWWindow<VkContext, VkPipeline>	window;
+
+	private MemoryStack							contextStack			= MemoryStack.create();
+	private VkSysLayers							layers;
+	private VkSysExtensions						extensions;
 	
 	
 	private final VkDebugReportCallbackEXT dbgFunc = VkDebugReportCallbackEXT
@@ -177,34 +177,14 @@ public class VkContext  implements GLFWGraphicsContext
 	
 	private void initVk()
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
+		try (MemoryStack stack = contextStack.push())
 		{
-			VkSys sys = new VkSys(stack);
-			PointerBuffer layers = new VkSysLayers().checkLayers(stack, VkSysLayers.VALIDATION_FALLBACK_SETS);
-			
-			
-			/*--------------------------------------------------------------------------------------------------------------
-			 											  REQUIRED EXTENSIONS
-			--------------------------------------------------------------------------------------------------------------*/
-			PointerBuffer requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions();
-			if (requiredExtensions == null)
-				throw new IllegalStateException("glfwGetRequiredInstanceExtensions failed to find the platform surface extensions.");
-			for (int i = 0; i < requiredExtensions.capacity(); i++)
-				extensionNames.put(requiredExtensions.get(i));
-			sys.check(VK10.vkEnumerateInstanceExtensionProperties((String)null, sys.intParam, null));
-			
-			if (sys.intParam.get(0) != 0)
-			{
-				VkExtensionProperties.Buffer instanceExtensions = VkExtensionProperties.mallocStack(sys.intParam.get(0), stack);
-				sys.check(VK10.vkEnumerateInstanceExtensionProperties((String)null, sys.intParam, instanceExtensions));
-				
-				for (int i = 0; i < sys.intParam.get(0); i++)
-				{
-					instanceExtensions.position(i);
-					if (EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME.equals(instanceExtensions.extensionNameString()))
-						extensionNames.put(EXT_debug_report);
-				}
-			}
+			VkSys sys = new VkSys(stack) { };
+			layers = new VkSysLayers(stack)
+					.checkLayers(VkSysLayers.VALIDATION_FALLBACK_SETS); // Validation only
+			extensions = new VkSysExtensions(stack)
+					.addRequiredExtensions()
+					.addIfFound(VkSysExtensions.EXT_DEBUG_REPORT); // Validation only
 			
 			
 			/*--------------------------------------------------------------------------------------------------------------
@@ -221,15 +201,15 @@ public class VkContext  implements GLFWGraphicsContext
 					.engineVersion(0)
 					.apiVersion(VK.getInstanceVersionSupported());
 			
-			extensionNames.flip();
+			extensions.extensions.flip();
 			VkInstanceCreateInfo instanceInfo = VkInstanceCreateInfo.mallocStack(stack)
 					.sType(VK10.VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO)
 					.pNext(MemoryUtil.NULL)
 					.flags(0)
 					.pApplicationInfo(app)
-					.ppEnabledLayerNames(layers)
-					.ppEnabledExtensionNames(extensionNames);
-			extensionNames.clear();
+					.ppEnabledLayerNames(layers.layers)
+					.ppEnabledExtensionNames(extensions.extensions);
+			extensions.extensions.clear();
 			
 			VkDebugReportCallbackCreateInfoEXT debugCreateInfo = VkDebugReportCallbackCreateInfoEXT.mallocStack(stack)
 					.sType(EXTDebugReport.VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT)
@@ -239,12 +219,11 @@ public class VkContext  implements GLFWGraphicsContext
 					.pUserData(MemoryUtil.NULL);
 			instanceInfo.pNext(debugCreateInfo.address());
 			
-			
 			/*--------------------------------------------------------------------------------------------------------------
 			 											  INSTANCE CREATION
 			--------------------------------------------------------------------------------------------------------------*/
 			int err = VK10.vkCreateInstance(instanceInfo, null, sys.pointerParam);
-			
+
 			switch (err)
 			{
 			case VK10.VK_ERROR_INCOMPATIBLE_DRIVER:
@@ -293,7 +272,7 @@ public class VkContext  implements GLFWGraphicsContext
 					if (KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME.equals(deviceExtensions.extensionNameString()))
 					{
 						swapchainExtFound = true;
-						extensionNames.put(KHR_swapchain);
+						extensions.extensions.put(stack.ASCII(VkSysExtensions.KHR_SWAPCHAIN));
 					}
 				}
 			}
@@ -331,9 +310,9 @@ public class VkContext  implements GLFWGraphicsContext
 	
 	private void initDevice()
 	{
-		try (MemoryStack stack = MemoryStack.stackPush())
+		try (MemoryStack stack = contextStack.push())
 		{
-			VkSys sys = new VkSys(stack);
+			VkSys sys = new VkSys(stack) { };
 			
 			VkDeviceQueueCreateInfo.Buffer queue = VkDeviceQueueCreateInfo.mallocStack(1, stack)
 					.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO)
@@ -346,14 +325,14 @@ public class VkContext  implements GLFWGraphicsContext
 			if (deviceFeatures.shaderClipDistance())
 				features.shaderClipDistance(true);
 			
-			extensionNames.flip();
+			extensions.extensions.flip();
 			VkDeviceCreateInfo device = VkDeviceCreateInfo.mallocStack(stack)
 					.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO)
 					.pNext(MemoryUtil.NULL)
 					.flags(0)
 					.pQueueCreateInfos(queue)
 					.ppEnabledLayerNames(null)
-					.ppEnabledExtensionNames(extensionNames)
+					.ppEnabledExtensionNames(extensions.extensions)
 					.pEnabledFeatures(features);
 			
 			sys.check(VK10.vkCreateDevice(physicalDevice, device, null, sys.pointerParam));
@@ -364,9 +343,9 @@ public class VkContext  implements GLFWGraphicsContext
 	private void initVkSwapchain()
 	{
 		
-		try (MemoryStack stack = MemoryStack.stackPush())
+		try (MemoryStack stack = contextStack.push())
 		{
-			VkSys sys = new VkSys(stack);
+			VkSys sys = new VkSys(stack) { };
 			
 			GLFWVulkan.glfwCreateWindowSurface(instance, window.pointer(), null, sys.longParam);
 			surface = sys.longParam.get(0);

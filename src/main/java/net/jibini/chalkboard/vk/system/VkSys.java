@@ -5,31 +5,36 @@ import java.nio.LongBuffer;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
-public class VkSys
+import net.jibini.chalkboard.object.Conversational;
+
+public abstract class VkSys<THIS extends VkSys<THIS>>
+		implements Conversational<THIS>
 {
-	public PointerBuffer pointerParam = MemoryUtil.memAllocPointer(1);
-	public IntBuffer intParam = MemoryUtil.memAllocInt(1);
-	public LongBuffer longParam = MemoryUtil.memAllocLong(1);
+	public final MemoryStack stack;
+	
+	public final PointerBuffer pointerParam;
+	public final IntBuffer intParam;
+	public final LongBuffer longParam;
 	
 	public VkSys(MemoryStack stack)
 	{
-		pointerParam = stack.mallocPointer(1);
-		intParam = stack.mallocInt(1);
-		longParam = stack.mallocLong(1);
+		this.stack = stack;
+		
+		this.pointerParam = stack.mallocPointer(1);
+		this.intParam = stack.mallocInt(1);
+		this.longParam = stack.mallocLong(1);
 	}
 	
 	public VkSys()
 	{
-		pointerParam = MemoryUtil.memAllocPointer(1);
-		intParam = MemoryUtil.memAllocInt(1);
-		longParam = MemoryUtil.memAllocLong(1);
+		this(MemoryStack.create());
 	}
 	
-	public void check(int errcode)
+	public THIS check(int errcode)
 	{
 		if (errcode != 0)
 			throw new IllegalStateException(String.format("Vulkan error [0x%X]", errcode));
+		return self();
 	}
 }
