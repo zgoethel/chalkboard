@@ -189,7 +189,7 @@ public class VkContext  implements GLFWGraphicsContext
 			PointerBuffer requiredExtensions = GLFWVulkan.glfwGetRequiredInstanceExtensions();
 			if (requiredExtensions == null)
 				throw new IllegalStateException("glfwGetRequiredInstanceExtensions failed to find the platform surface extensions.");
-			for (int i = 0; i < requiredExtensions.capacity(); i ++)
+			for (int i = 0; i < requiredExtensions.capacity(); i++)
 				extensionNames.put(requiredExtensions.get(i));
 			sys.check(VK10.vkEnumerateInstanceExtensionProperties((String)null, sys.intParam, null));
 			
@@ -198,7 +198,7 @@ public class VkContext  implements GLFWGraphicsContext
 				VkExtensionProperties.Buffer instanceExtensions = VkExtensionProperties.mallocStack(sys.intParam.get(0), stack);
 				sys.check(VK10.vkEnumerateInstanceExtensionProperties((String)null, sys.intParam, instanceExtensions));
 				
-				for (int i = 0; i < sys.intParam.get(0); i ++)
+				for (int i = 0; i < sys.intParam.get(0); i++)
 				{
 					instanceExtensions.position(i);
 					if (EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME.equals(instanceExtensions.extensionNameString()))
@@ -286,7 +286,7 @@ public class VkContext  implements GLFWGraphicsContext
 				VkExtensionProperties.Buffer deviceExtensions = VkExtensionProperties.mallocStack(sys.intParam.get(0), stack);
 				sys.check(VK10.vkEnumerateDeviceExtensionProperties(physicalDevice, (String)null, sys.intParam, deviceExtensions));
 				
-				for (int i = 0; i < sys.intParam.get(0); i ++)
+				for (int i = 0; i < sys.intParam.get(0); i++)
 				{
 					deviceExtensions.position(i);
 
@@ -375,7 +375,7 @@ public class VkContext  implements GLFWGraphicsContext
 			int graphicsQueueNodeIndex;
 			int presentQueueNodeIndex;
 			
-			for (int i = 0; i < supportsPresent.capacity(); i ++)
+			for (int i = 0; i < supportsPresent.capacity(); i++)
 			{
 				supportsPresent.position(i);
 				KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, supportsPresent);
@@ -384,7 +384,7 @@ public class VkContext  implements GLFWGraphicsContext
 			graphicsQueueNodeIndex = Integer.MAX_VALUE;
 			presentQueueNodeIndex = Integer.MAX_VALUE;
 			
-			for (int i = 0; i < supportsPresent.capacity(); i ++)
+			for (int i = 0; i < supportsPresent.capacity(); i++)
 				if ((queueProps.get(i).queueFlags() & VK10.VK_QUEUE_GRAPHICS_BIT) != 0)
 				{
 					if (graphicsQueueNodeIndex == Integer.MAX_VALUE)
@@ -399,7 +399,7 @@ public class VkContext  implements GLFWGraphicsContext
 				}
 			
 			if (presentQueueNodeIndex == Integer.MAX_VALUE)
-				for (int i = 0; i < supportsPresent.capacity(); i ++)
+				for (int i = 0; i < supportsPresent.capacity(); i++)
 					if (supportsPresent.get(i) == VK10.VK_TRUE)
 					{
 						presentQueueNodeIndex = i;

@@ -63,7 +63,7 @@ public abstract class GLFWLifecycle
 		context.swapBuffers();
 		if (c == -1)
 			t = System.nanoTime();
-		c ++;
+		c++;
 		
 		if (System.nanoTime() - t > 2000000000L)
 		{
