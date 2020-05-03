@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.lwjgl;
+package net.jibini.chalkboard.lwjgl.opengl;
 
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
@@ -6,9 +6,9 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLUtil;
 
-import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
-import net.jibini.chalkboard.glfw.GLFWWindow;
-import net.jibini.chalkboard.glfw.GLFWWindowService;
+import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsContext;
+import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
+import net.jibini.chalkboard.lwjgl.glfw.GLFWWindowService;
 
 public class GLContext implements GLFWGraphicsContext
 		<

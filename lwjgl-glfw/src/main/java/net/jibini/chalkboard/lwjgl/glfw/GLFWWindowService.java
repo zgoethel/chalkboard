@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.glfw;
+package net.jibini.chalkboard.lwjgl.glfw;
 
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;

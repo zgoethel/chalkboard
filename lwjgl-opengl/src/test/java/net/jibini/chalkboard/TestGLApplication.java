@@ -3,7 +3,7 @@ package net.jibini.chalkboard;
 import org.junit.Test;
 import org.lwjgl.opengl.GL11;
 
-import net.jibini.chalkboard.lwjgl.GLContext;
+import net.jibini.chalkboard.lwjgl.opengl.GLContext;
 
 public class TestGLApplication
 {

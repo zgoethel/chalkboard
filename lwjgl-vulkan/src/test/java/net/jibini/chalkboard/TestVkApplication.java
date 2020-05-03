@@ -2,7 +2,7 @@ package net.jibini.chalkboard;
 
 import org.junit.Test;
 
-import net.jibini.chalkboard.vk.VkContext;
+import net.jibini.chalkboard.lwjgl.vulkan.VkContext;
 
 public class TestVkApplication
 {

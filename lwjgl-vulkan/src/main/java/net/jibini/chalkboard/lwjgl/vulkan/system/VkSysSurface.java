@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.vk.system;
+package net.jibini.chalkboard.lwjgl.vulkan.system;
 
 import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
@@ -9,9 +9,9 @@ import org.lwjgl.vulkan.VkPhysicalDevice;
 import org.lwjgl.vulkan.VkQueueFamilyProperties;
 import org.lwjgl.vulkan.VkSurfaceFormatKHR;
 
-import net.jibini.chalkboard.glfw.GLFWWindow;
-import net.jibini.chalkboard.vk.VkContext;
-import net.jibini.chalkboard.vk.VkPipeline;
+import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
+import net.jibini.chalkboard.lwjgl.vulkan.VkContext;
+import net.jibini.chalkboard.lwjgl.vulkan.VkPipeline;
 
 public class VkSysSurface extends VkSys<VkSysSurface>
 {

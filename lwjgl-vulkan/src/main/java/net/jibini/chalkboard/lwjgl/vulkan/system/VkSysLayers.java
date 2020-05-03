@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.vk.system;
+package net.jibini.chalkboard.lwjgl.vulkan.system;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;

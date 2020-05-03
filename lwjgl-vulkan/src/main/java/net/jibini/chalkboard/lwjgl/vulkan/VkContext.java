@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.vk;
+package net.jibini.chalkboard.lwjgl.vulkan;
 
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
@@ -14,16 +14,16 @@ import org.lwjgl.vulkan.VkPhysicalDeviceProperties;
 import org.lwjgl.vulkan.VkQueue;
 import org.lwjgl.vulkan.VkQueueFamilyProperties;
 
-import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
-import net.jibini.chalkboard.glfw.GLFWWindow;
-import net.jibini.chalkboard.glfw.GLFWWindowService;
-import net.jibini.chalkboard.vk.system.VkSysDevice;
-import net.jibini.chalkboard.vk.system.VkSysPhysicalDevice;
-import net.jibini.chalkboard.vk.system.VkSysQueue;
-import net.jibini.chalkboard.vk.system.VkSysSurface;
-import net.jibini.chalkboard.vk.system.VkSysExtensions;
-import net.jibini.chalkboard.vk.system.VkSysInstance;
-import net.jibini.chalkboard.vk.system.VkSysLayers;
+import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsContext;
+import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
+import net.jibini.chalkboard.lwjgl.glfw.GLFWWindowService;
+import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysDevice;
+import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysExtensions;
+import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysInstance;
+import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysLayers;
+import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysPhysicalDevice;
+import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysQueue;
+import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysSurface;
 
 public class VkContext implements GLFWGraphicsContext
 		<

@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.glfw;
+package net.jibini.chalkboard.lwjgl.glfw;
 
 import net.jibini.chalkboard.GraphicsContext;
 

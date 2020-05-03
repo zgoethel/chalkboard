@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.vk.system;
+package net.jibini.chalkboard.lwjgl.vulkan.system;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
