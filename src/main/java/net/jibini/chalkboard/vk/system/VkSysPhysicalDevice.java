@@ -8,6 +8,7 @@ import org.lwjgl.vulkan.VkExtensionProperties;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkPhysicalDevice;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
+import org.lwjgl.vulkan.VkPhysicalDeviceMemoryProperties;
 import org.lwjgl.vulkan.VkPhysicalDeviceProperties;
 import org.lwjgl.vulkan.VkQueueFamilyProperties;
 
@@ -83,5 +84,11 @@ public class VkSysPhysicalDevice extends VkSys<VkSysPhysicalDevice>
 		VkQueueFamilyProperties.Buffer queueProperties = VkQueueFamilyProperties.mallocStack(intParam.get(0), stack);
 		VK10.vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, intParam, queueProperties);
 		return queueProperties;
+	}
+	
+	public VkSysPhysicalDevice memoryProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties properties)
+	{
+		VK10.vkGetPhysicalDeviceMemoryProperties(physicalDevice, properties);
+		return self();
 	}
 }

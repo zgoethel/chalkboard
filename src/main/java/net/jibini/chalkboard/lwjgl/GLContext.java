@@ -9,14 +9,12 @@ import org.lwjgl.opengl.GLUtil;
 import net.jibini.chalkboard.glfw.GLFWGraphicsContext;
 import net.jibini.chalkboard.glfw.GLFWWindow;
 import net.jibini.chalkboard.glfw.GLFWWindowService;
-import net.jibini.chalkboard.object.ContextVersioned;
 
 public class GLContext implements GLFWGraphicsContext
 		<
 			GLContext,
 			GLPipeline
-		>,
-			ContextVersioned<GLContext>
+		>
 {
 	private int contextVersion = 33;
 	private boolean core = false;
@@ -59,13 +57,10 @@ public class GLContext implements GLFWGraphicsContext
 	public GLPipeline createPipeline() { return new GLPipeline(); }
 	
 	
-	@Override
 	public GLContext withContextVersion(int version) { this.contextVersion = version; return self(); }
 
-	@Override
 	public GLContext enableGLCore() { this.core = true; return self(); }
 
-	@Override
 	public GLContext enableGLForwardCompat() { this.forwardCompat = true; return self(); }
 	
 
