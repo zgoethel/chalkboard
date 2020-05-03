@@ -69,6 +69,7 @@ public class GLContext implements GLFWGraphicsContext
 	public GLContext enableGLForwardCompat() { this.forwardCompat = true; return self(); }
 	
 
+	@SuppressWarnings("resource")
 	@Override
 	public GLFWWindowService<GLContext, GLPipeline> createWindowService()
 	{

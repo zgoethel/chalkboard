@@ -53,6 +53,7 @@ public class GLFWWindowService
 	public String version() { return GLFW.glfwGetVersionString() + " [LWJGL " + Version.getVersion() + "]"; }
 	
 
+	@SuppressWarnings("resource")
 	@Override
 	public GLFWWindow<CONTEXT, PIPELINE> createWindow()
 	{

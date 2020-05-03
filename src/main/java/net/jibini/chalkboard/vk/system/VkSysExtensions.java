@@ -4,14 +4,12 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.EXTDebugReport;
-import org.lwjgl.vulkan.KHRSwapchain;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkExtensionProperties;
 
 public class VkSysExtensions extends VkSys<VkSysExtensions>
 {
 	public static final String EXT_DEBUG_REPORT = EXTDebugReport.VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
-	public static final String KHR_SWAPCHAIN = KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 	
 	public final PointerBuffer extensions;
 	
@@ -55,7 +53,6 @@ public class VkSysExtensions extends VkSys<VkSysExtensions>
 			throw new IllegalStateException("vkEnumerateInstanceExtensionProperties failed to find extension '" + extension + "'.");
 		} else
 			System.err.println("vkEnumerateInstanceExtensionProperties found no extensions.");
-		
 		return self();
 	}
 	

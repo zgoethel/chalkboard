@@ -11,8 +11,6 @@ import org.lwjgl.vulkan.VkDebugReportCallbackEXT;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkInstanceCreateInfo;
 
-import net.jibini.chalkboard.object.Generatable;
-
 public class VkSysInstance extends VkSys<VkSysInstance>
 {
 	private static final VkDebugReportCallbackEXT debugFunc = VkDebugReportCallbackEXT
