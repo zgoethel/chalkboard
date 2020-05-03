@@ -1,0 +1,12 @@
+dependencies
+{
+	compile platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+	
+	compile "org.lwjgl:lwjgl"
+	compile "org.lwjgl:lwjgl-glfw"
+	
+	runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+	
+	api project(':chalkboard')
+}
