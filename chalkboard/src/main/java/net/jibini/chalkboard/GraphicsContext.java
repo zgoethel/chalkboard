@@ -5,6 +5,7 @@ import net.jibini.chalkboard.object.Destroyable;
 import net.jibini.chalkboard.object.Generatable;
 import net.jibini.chalkboard.object.Initializable;
 import net.jibini.chalkboard.object.NameVersioned;
+import net.jibini.chalkboard.object.Spawnable;
 
 public interface GraphicsContext
 		<
@@ -14,7 +15,7 @@ public interface GraphicsContext
 			WINDOW		extends Window			<CONTEXT, PIPELINE, WINDOWSERV, WINDOW>
 		>
 		extends Generatable<CONTEXT>, Destroyable<CONTEXT>, Initializable<CONTEXT>,
-			NameVersioned, Conversational<CONTEXT>
+			NameVersioned, Conversational<CONTEXT>, Spawnable<CONTEXT>
 {
 	WINDOWSERV createWindowService();
 	

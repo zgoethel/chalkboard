@@ -4,7 +4,9 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.KHRSurface;
 import org.lwjgl.vulkan.VK;
+import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkInstance;
 import org.lwjgl.vulkan.VkPhysicalDevice;
@@ -63,13 +65,8 @@ public class VkContext implements GLFWGraphicsContext
 	private int									format, colorSpace;
 	private VkQueue								queue;
 	
-	@SuppressWarnings("resource")
-	private VkContext spawn()
-	{
-		VkContext spawned = new VkContext()
-				.attachWindow(window);
-		return spawned;
-	}
+	@Override
+	public VkContext spawn() { return new VkContext(); }
 
 	@Override
 	public VkContext initialize()
@@ -161,14 +158,18 @@ public class VkContext implements GLFWGraphicsContext
 	@Override
 	public VkContext generate()
 	{
-		return spawn()
-				.generateVk()
+		return generateVk()
 				.generateSwapchain();
 	}
 
 	@Override
 	public VkContext destroy()
 	{
+		if (instance != null)
+		{
+			KHRSurface.vkDestroySurfaceKHR(instance, surface, null);
+			VK10.vkDestroyInstance(instance, null);
+		}
 		
 		return self();
 	}
@@ -188,10 +189,8 @@ public class VkContext implements GLFWGraphicsContext
 	}
 
 	@Override
-	public VkPipeline createPipeline()
-	{
-		return new VkPipeline();
-	}
+	public VkPipeline createPipeline() { return new VkPipeline(); }
+	
 
 	@SuppressWarnings("resource")
 	@Override
@@ -202,13 +201,6 @@ public class VkContext implements GLFWGraphicsContext
 				.initializeOnce()
 				
 				.hint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
-	}
-	
-	@Override
-	public VkContext makeCurrent()
-	{
-		
-		return self();
 	}
 
 	@Override

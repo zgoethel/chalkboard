@@ -16,7 +16,7 @@ public class GLContext implements GLFWGraphicsContext
 			GLPipeline
 		>
 {
-	private int contextVersion = 33;
+	private int contextVersion = 30;
 	private boolean core = false;
 	private boolean forwardCompat = false;
 	
@@ -31,6 +31,7 @@ public class GLContext implements GLFWGraphicsContext
 	@Override
 	public GLContext generate()
 	{
+		GLFW.glfwMakeContextCurrent(window.pointer());
 		GL.createCapabilities();
 		GLUtil.setupDebugMessageCallback();
 		return self();
@@ -78,16 +79,28 @@ public class GLContext implements GLFWGraphicsContext
 		if (forwardCompat) w.hint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
 		return w;
 	}
-	
-	@Override
-	public GLContext makeCurrent()
-	{ GLFW.glfwMakeContextCurrent(window.pointer()); return self(); }
 
 	@Override
 	public GLContext prepareRender()
-	{ GLFW.glfwSwapInterval(0); return self(); }
+	{
+		GLFW.glfwMakeContextCurrent(window.pointer());
+		GLFW.glfwSwapInterval(0);
+		return self();
+	}
 
 	@Override
 	public GLContext swapBuffers()
 	{ GLFW.glfwSwapBuffers(window.pointer()); return self(); }
+
+	
+	@SuppressWarnings("resource")
+	@Override
+	public GLContext spawn()
+	{
+		GLContext spawned = new GLContext()
+				.withContextVersion(contextVersion);
+		if (core) spawned.enableGLCore();
+		if (forwardCompat) spawned.enableGLForwardCompat();
+		return spawned;
+	}
 }

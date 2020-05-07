@@ -27,9 +27,10 @@ public abstract class GLFWLifecycle
 		window.generate();
 		context = contextGiven
 			.initializeOnce()
-			.attachWindow(window)
-			.makeCurrent()
+			.spawn()
 			
+			.attachWindow(window)
+//			.makeCurrent()
 			.generate();
 		return self();
 	}
@@ -48,7 +49,7 @@ public abstract class GLFWLifecycle
 	public GLFWLifecycle<CONTEXT, PIPELINE> preUpdate()
 	{
 		window.update();
-		context.makeCurrent()
+		context//.makeCurrent()
 				.prepareRender();
 		return self();
 	}
@@ -82,7 +83,12 @@ public abstract class GLFWLifecycle
 	public GLFWLifecycle<CONTEXT, PIPELINE> destroy() { return self(); };
 	
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> postDestroy() { window.destroy(); return self(); }
+	public GLFWLifecycle<CONTEXT, PIPELINE> postDestroy()
+	{
+		window.destroy();
+		context.destroy();
+		return self();
+	}
 	
 
 	@Override

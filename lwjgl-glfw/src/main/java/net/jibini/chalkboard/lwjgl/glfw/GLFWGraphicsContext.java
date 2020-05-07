@@ -18,7 +18,7 @@ public interface GLFWGraphicsContext
 	CONTEXT attachWindow(GLFWWindow<CONTEXT, PIPELINE> window);
 	
 	
-	CONTEXT makeCurrent();
+//	CONTEXT makeCurrent();
 	
 	CONTEXT prepareRender();
 	
