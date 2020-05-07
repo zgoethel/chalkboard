@@ -27,13 +27,18 @@ public class VkSysDevice extends VkSys<VkSysDevice>
 				.sType(VK10.VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO)
 				.pNext(MemoryUtil.NULL)
 				.flags(0)
-				.pQueueCreateInfos(queue)
-				.ppEnabledLayerNames(null);
+				.pQueueCreateInfos(queue);
 	}
 	
 	public VkSysDevice withQueueFamilyIndex(int index)
 	{
 		queue.queueFamilyIndex(index);
+		return self();
+	}
+	
+	public VkSysDevice enableLayers(VkSysLayers layers)
+	{
+		device.ppEnabledLayerNames(layers.layers);
 		return self();
 	}
 	

@@ -118,13 +118,14 @@ public class VkContext implements GLFWGraphicsContext
 	{
 		try (MemoryStack stack = contextStack.push())
 		{
-			VkPhysicalDeviceFeatures features = VkPhysicalDeviceFeatures.callocStack(stack);
-			if (deviceFeatures.shaderClipDistance())
-				features.shaderClipDistance(true);
+//			VkPhysicalDeviceFeatures features = VkPhysicalDeviceFeatures.callocStack(stack);
+//			if (deviceFeatures.shaderClipDistance())
+//				features.shaderClipDistance(true);
 			
 			device = sys_device
+					.enableLayers(sys_layers)
 					.enableExtensions(sys_physicalDevice)
-					.enableFeatures(features)
+					.enableFeatures(deviceFeatures)
 					.withQueueFamilyIndex(graphicsQueueNodeIndex)
 					.generateDevice(physicalDevice);
 		}
