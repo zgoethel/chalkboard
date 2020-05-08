@@ -4,13 +4,18 @@ import org.junit.Test;
 import org.lwjgl.opengl.GL11;
 
 import net.jibini.chalkboard.lwjgl.opengl.GLContext;
+import net.jibini.chalkboard.signature.StaticMesh;
 
 public class TestGLApplication
 {
+	@SuppressWarnings("deprecation")
 	@Test
 	public void openGLContext() throws InterruptedException
 	{
-		try (GLContext context = new GLContext())
+		try (
+				GLContext context = new GLContext();
+				StaticMesh<?> mesh = context.createStaticMesh();
+			)
 		{
 			context.withContextVersion(20)
 					.createWindowService()
@@ -23,23 +28,24 @@ public class TestGLApplication
 						System.out.println(context.name() + " (" + context.version() + ")");
 						System.out.println(context.createWindowService().name()
 								+ " (" + context.createWindowService().version() + ")");
+						
+						mesh
+								.appendVertex(-1.0f, -1.0f, 0.0f)
+								.appendVertex(1.0f, -1.0f, 0.0f)
+								.appendVertex(1.0f, 1.0f, 0.0f)
+								
+								.appendVertex(1.0f, 1.0f, 0.0f)
+								.appendVertex(-1.0f, 1.0f, 0.0f)
+								.appendVertex(-1.0f, -1.0f, 0.0f)
+								
+								.generate();
 					}, () ->
 					{
-						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-						GL11.glLoadIdentity();
-						
-						GL11.glOrtho(-768.0 / 2, 768.0 / 2, -420.0f/ 2, 420.0 / 2, -1.0, 1.0);
 						GL11.glColor4f((float)Math.sin((float)System.nanoTime() / 1000000000L),
 								(float)Math.sin((float)System.nanoTime() / 1000000000L + 2 * 3.14f * 0.333f),
 								(float)Math.sin((float)System.nanoTime() / 1000000000L + 2 * 3.14f * 0.667f),
 								1.0f);
-						
-						GL11.glBegin(GL11.GL_QUADS);
-						GL11.glVertex2f(-200, -200);
-						GL11.glVertex2f(200, -200);
-						GL11.glVertex2f(200, 200);
-						GL11.glVertex2f(-200, 200);
-						GL11.glEnd();
+						context.renderMesh(mesh);
 					}, () ->
 					{
 						

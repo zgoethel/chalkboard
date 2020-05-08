@@ -8,29 +8,27 @@ import net.jibini.chalkboard.WindowService;
 
 public class GLFWWindowService
 		<
-			CONTEXT		extends GLFWGraphicsContext	<CONTEXT, PIPELINE>,
-			PIPELINE	extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
+			CONTEXT extends GLFWGraphicsContext<CONTEXT>
 		>
 		implements WindowService
 		<
 			CONTEXT,
-			PIPELINE,
-			GLFWWindowService	<CONTEXT, PIPELINE>,
-			GLFWWindow			<CONTEXT, PIPELINE>
+			GLFWWindowService<CONTEXT>,
+			GLFWWindow<CONTEXT>
 		>
 {
 	private GLFWErrorCallback error = GLFWErrorCallback.createThrow();
 	private CONTEXT context;
 	
-	public GLFWWindowService<CONTEXT, PIPELINE> attachContext(CONTEXT context)
+	public GLFWWindowService<CONTEXT> attachContext(CONTEXT context)
 	{ this.context = context; return self(); }
 	
 	@Override
-	public GLFWWindowService<CONTEXT, PIPELINE> destroy() { GLFW.glfwTerminate(); return self(); }
+	public GLFWWindowService<CONTEXT> destroy() { GLFW.glfwTerminate(); return self(); }
 	
 
 	@Override
-	public GLFWWindowService<CONTEXT, PIPELINE> initialize()
+	public GLFWWindowService<CONTEXT> initialize()
 	{
 		GLFW.glfwSetErrorCallback(error);
 		if (!GLFW.glfwInit())
@@ -55,13 +53,13 @@ public class GLFWWindowService
 
 	@SuppressWarnings("resource")
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> createWindow()
+	public GLFWWindow<CONTEXT> createWindow()
 	{
-		return new GLFWWindow<CONTEXT, PIPELINE>()
+		return new GLFWWindow<CONTEXT>()
 				.attachContext(context);
 	}
 	
-	public GLFWWindowService<CONTEXT, PIPELINE> hint(int hint, int value)
+	public GLFWWindowService<CONTEXT> hint(int hint, int value)
 	{ GLFW.glfwWindowHint(hint, value); return self(); }
 
 //	@Override

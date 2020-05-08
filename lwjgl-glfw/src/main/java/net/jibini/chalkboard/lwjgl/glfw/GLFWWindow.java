@@ -7,15 +7,13 @@ import net.jibini.chalkboard.object.Pointer;
 
 public class GLFWWindow
 		<
-			CONTEXT		extends GLFWGraphicsContext	<CONTEXT, PIPELINE>,
-			PIPELINE	extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
+			CONTEXT extends GLFWGraphicsContext<CONTEXT>
 		>
 		implements Window
 		<
 			CONTEXT,
-			PIPELINE,
-			GLFWWindowService	<CONTEXT, PIPELINE>,
-			GLFWWindow			<CONTEXT, PIPELINE>
+			GLFWWindowService<CONTEXT>,
+			GLFWWindow<CONTEXT>
 		>,
 			Pointer<Long>
 {
@@ -26,17 +24,17 @@ public class GLFWWindow
 	private CONTEXT context;
 	
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> generate()
+	public GLFWWindow<CONTEXT> generate()
 	{
 		this.pointer = GLFW.glfwCreateWindow(width, height, title, 0L, 0L);
 		return self();
 	}
 
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> destroy() { GLFW.glfwDestroyWindow(this.pointer()); return self(); }
+	public GLFWWindow<CONTEXT> destroy() { GLFW.glfwDestroyWindow(this.pointer()); return self(); }
 
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> attachContext(CONTEXT context)
+	public GLFWWindow<CONTEXT> attachContext(CONTEXT context)
 	{
 		this.context = context;
 		return self();
@@ -48,42 +46,42 @@ public class GLFWWindow
 	
 	
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> withWidth(int width) { this.width = width; return self(); }
+	public GLFWWindow<CONTEXT> withWidth(int width) { this.width = width; return self(); }
 
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> withHeight(int height) { this.height = height; return self(); }
+	public GLFWWindow<CONTEXT> withHeight(int height) { this.height = height; return self(); }
 
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> withTitle(String title) { this.title = title; return self(); }
+	public GLFWWindow<CONTEXT> withTitle(String title) { this.title = title; return self(); }
 	
 	
 	
 	public boolean shouldClose() { return GLFW.glfwWindowShouldClose(pointer()); }
 
 	@Override
-	public GLFWWindow<CONTEXT, PIPELINE> update() { GLFW.glfwPollEvents(); return self(); }
+	public GLFWWindow<CONTEXT> update() { GLFW.glfwPollEvents(); return self(); }
 	
 	
-	public GLFWLifecycle<CONTEXT, PIPELINE> createLifecycle(Runnable init, Runnable update, Runnable destroy)
+	public GLFWLifecycle<CONTEXT> createLifecycle(Runnable init, Runnable update, Runnable destroy)
 	{
-		return new GLFWLifecycle<CONTEXT, PIPELINE>()
+		return new GLFWLifecycle<CONTEXT>()
 				{
 					@Override
-					public GLFWLifecycle<CONTEXT, PIPELINE> init()
+					public GLFWLifecycle<CONTEXT> init()
 					{
 						init.run();
 						return self();
 					}
 
 					@Override
-					public GLFWLifecycle<CONTEXT, PIPELINE> update()
+					public GLFWLifecycle<CONTEXT> update()
 					{
 						update.run();
 						return self();
 					}
 
 					@Override
-					public GLFWLifecycle<CONTEXT, PIPELINE> destroy()
+					public GLFWLifecycle<CONTEXT> destroy()
 					{
 						destroy.run();
 						return self();

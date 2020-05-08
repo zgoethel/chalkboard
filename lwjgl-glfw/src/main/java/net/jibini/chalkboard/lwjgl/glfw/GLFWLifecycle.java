@@ -2,27 +2,23 @@ package net.jibini.chalkboard.lwjgl.glfw;
 
 import net.jibini.chalkboard.life.Lifecycle;
 
-public abstract class GLFWLifecycle
-		<
-			CONTEXT		extends GLFWGraphicsContext	<CONTEXT, PIPELINE>,
-			PIPELINE	extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
-		>
-		implements Lifecycle<GLFWLifecycle<CONTEXT, PIPELINE>>
+public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>>
+		implements Lifecycle<GLFWLifecycle<CONTEXT>>
 {
 	private CONTEXT contextGiven, context;
-	private GLFWWindow<CONTEXT, PIPELINE> window;
+	private GLFWWindow<CONTEXT> window;
 	
 	private long t = 0, c = -1;
 	
-	public GLFWLifecycle<CONTEXT, PIPELINE> withWindow(GLFWWindow<CONTEXT, PIPELINE> window)
+	public GLFWLifecycle<CONTEXT> withWindow(GLFWWindow<CONTEXT> window)
 	{ this.window = window; return self(); }
 	
-	public GLFWLifecycle<CONTEXT, PIPELINE> withContext(CONTEXT context)
+	public GLFWLifecycle<CONTEXT> withContext(CONTEXT context)
 	{ this.contextGiven = context; return self(); }
 	
 	
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> initContext()
+	public GLFWLifecycle<CONTEXT> initContext()
 	{
 		window.generate();
 		context = contextGiven
@@ -36,17 +32,17 @@ public abstract class GLFWLifecycle
 	}
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> preInit() { return self(); };
+	public GLFWLifecycle<CONTEXT> preInit() { return self(); };
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> init() { return self(); };
+	public GLFWLifecycle<CONTEXT> init() { return self(); };
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> postInit() { return self(); };
+	public GLFWLifecycle<CONTEXT> postInit() { return self(); };
 	
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> preUpdate()
+	public GLFWLifecycle<CONTEXT> preUpdate()
 	{
 		window.update();
 		context//.makeCurrent()
@@ -55,11 +51,11 @@ public abstract class GLFWLifecycle
 	}
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> update() { return self(); };
+	public GLFWLifecycle<CONTEXT> update() { return self(); };
 	
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> postUpdate()
+	public GLFWLifecycle<CONTEXT> postUpdate()
 	{
 		context.swapBuffers();
 		if (c == -1)
@@ -77,13 +73,13 @@ public abstract class GLFWLifecycle
 	}
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> preDestroy() { return self(); };
+	public GLFWLifecycle<CONTEXT> preDestroy() { return self(); };
 
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> destroy() { return self(); };
+	public GLFWLifecycle<CONTEXT> destroy() { return self(); };
 	
 	@Override
-	public GLFWLifecycle<CONTEXT, PIPELINE> postDestroy()
+	public GLFWLifecycle<CONTEXT> postDestroy()
 	{
 		window.destroy();
 		context.destroy();

@@ -9,20 +9,19 @@ import org.lwjgl.opengl.GLUtil;
 import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsContext;
 import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
 import net.jibini.chalkboard.lwjgl.glfw.GLFWWindowService;
+import net.jibini.chalkboard.lwjgl.opengl.mesh.GL11StaticMesh;
+import net.jibini.chalkboard.lwjgl.opengl.mesh.GLStaticMesh;
+import net.jibini.chalkboard.signature.StaticMesh;
 
-public class GLContext implements GLFWGraphicsContext
-		<
-			GLContext,
-			GLPipeline
-		>
+public class GLContext implements GLFWGraphicsContext<GLContext>
 {
 	private int contextVersion = 30;
 	private boolean core = false;
 	private boolean forwardCompat = false;
 	
-	private GLFWWindow<GLContext, GLPipeline>	window;
+	private GLFWWindow<GLContext>	window;
 	
-	public GLContext attachWindow(GLFWWindow<GLContext, GLPipeline> window)
+	public GLContext attachWindow(GLFWWindow<GLContext> window)
 	{
 		this.window = window;
 		return self();
@@ -34,6 +33,13 @@ public class GLContext implements GLFWGraphicsContext
 		GLFW.glfwMakeContextCurrent(window.pointer());
 		GL.createCapabilities();
 		GLUtil.setupDebugMessageCallback();
+		
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		
+		GL11.glEnable(GL11.GL_CULL_FACE);
+		GL11.glCullFace(GL11.GL_BACK);
+		GL11.glFrontFace(GL11.GL_CCW);
+		
 		return self();
 	}
 
@@ -67,9 +73,9 @@ public class GLContext implements GLFWGraphicsContext
 
 	@SuppressWarnings("resource")
 	@Override
-	public GLFWWindowService<GLContext, GLPipeline> createWindowService()
+	public GLFWWindowService<GLContext> createWindowService()
 	{
-		GLFWWindowService<GLContext, GLPipeline> w = new GLFWWindowService<GLContext, GLPipeline>()
+		GLFWWindowService<GLContext> w = new GLFWWindowService<GLContext>()
 				.attachContext(this)
 				.initializeOnce()
 				
@@ -85,6 +91,10 @@ public class GLContext implements GLFWGraphicsContext
 	{
 		GLFW.glfwMakeContextCurrent(window.pointer());
 		GLFW.glfwSwapInterval(0);
+		
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+//		GL11.glLoadIdentity();
+		
 		return self();
 	}
 
@@ -102,5 +112,22 @@ public class GLContext implements GLFWGraphicsContext
 		if (core) spawned.enableGLCore();
 		if (forwardCompat) spawned.enableGLForwardCompat();
 		return spawned;
+	}
+
+	@Override
+	public StaticMesh<?> createStaticMesh()
+	{
+		if (contextVersion <= 20)
+			return new GL11StaticMesh();
+		return new GL11StaticMesh();
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Deprecated
+	@Override
+	public GLContext renderMesh(StaticMesh<?> mesh)
+	{
+		((GLStaticMesh)mesh).renderCall();
+		return null;
 	}
 }

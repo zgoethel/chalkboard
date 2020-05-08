@@ -4,18 +4,16 @@ import net.jibini.chalkboard.GraphicsContext;
 
 public interface GLFWGraphicsContext
 		<
-			CONTEXT		extends GLFWGraphicsContext	<CONTEXT, PIPELINE>,
-			PIPELINE	extends GLFWGraphicsPipeline<CONTEXT, PIPELINE>
+			CONTEXT extends GLFWGraphicsContext<CONTEXT>
 		>
 		extends GraphicsContext
 		<
 			CONTEXT,
-			PIPELINE,
-			GLFWWindowService	<CONTEXT, PIPELINE>,
-			GLFWWindow			<CONTEXT, PIPELINE>
+			GLFWWindowService<CONTEXT>,
+			GLFWWindow<CONTEXT>
 		>
 {
-	CONTEXT attachWindow(GLFWWindow<CONTEXT, PIPELINE> window);
+	CONTEXT attachWindow(GLFWWindow<CONTEXT> window);
 	
 	
 //	CONTEXT makeCurrent();

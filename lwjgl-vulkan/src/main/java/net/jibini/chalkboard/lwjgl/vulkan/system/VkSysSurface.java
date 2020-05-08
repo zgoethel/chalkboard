@@ -11,7 +11,6 @@ import org.lwjgl.vulkan.VkSurfaceFormatKHR;
 
 import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
 import net.jibini.chalkboard.lwjgl.vulkan.VkContext;
-import net.jibini.chalkboard.lwjgl.vulkan.VkPipeline;
 
 public class VkSysSurface extends VkSys<VkSysSurface>
 {
@@ -20,7 +19,7 @@ public class VkSysSurface extends VkSys<VkSysSurface>
 		super(stack);
 	}
 	
-	public long generateSurface(VkInstance instance, GLFWWindow<VkContext, VkPipeline> window)
+	public long generateSurface(VkInstance instance, GLFWWindow<VkContext> window)
 	{
 		GLFWVulkan.glfwCreateWindowSurface(instance, window.pointer(), null, longParam);
 		return longParam.get(0);

@@ -26,12 +26,9 @@ import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysLayers;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysPhysicalDevice;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysQueue;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysSurface;
+import net.jibini.chalkboard.signature.StaticMesh;
 
-public class VkContext implements GLFWGraphicsContext
-		<
-			VkContext,
-			VkPipeline
-		>
+public class VkContext implements GLFWGraphicsContext<VkContext>
 {
 	private static MemoryStack					contextStack			= MemoryStack.create();
 	
@@ -40,7 +37,7 @@ public class VkContext implements GLFWGraphicsContext
 	private static VkSysExtensions				sys_extensions			= new VkSysExtensions(contextStack);
 	private static VkSysInstance				sys_instance			= new VkSysInstance(contextStack);
 
-	private GLFWWindow<VkContext, VkPipeline>	window;
+	private GLFWWindow<VkContext>				window;
 	private VkInstance							instance;
 	
 	
@@ -149,7 +146,7 @@ public class VkContext implements GLFWGraphicsContext
 	}
 
 	@Override
-	public VkContext attachWindow(GLFWWindow<VkContext, VkPipeline> window)
+	public VkContext attachWindow(GLFWWindow<VkContext> window)
 	{
 		this.window = window;
 		return self();
@@ -194,9 +191,9 @@ public class VkContext implements GLFWGraphicsContext
 
 	@SuppressWarnings("resource")
 	@Override
-	public GLFWWindowService<VkContext, VkPipeline> createWindowService()
+	public GLFWWindowService<VkContext> createWindowService()
 	{
-		return new GLFWWindowService<VkContext, VkPipeline>()
+		return new GLFWWindowService<VkContext>()
 				.attachContext(self())
 				.initializeOnce()
 				
@@ -212,6 +209,21 @@ public class VkContext implements GLFWGraphicsContext
 
 	@Override
 	public VkContext swapBuffers()
+	{
+		
+		return self();
+	}
+
+	@Override
+	public StaticMesh<?> createStaticMesh()
+	{
+		
+		return null;
+	}
+
+	@Override
+	@Deprecated
+	public VkContext renderMesh(StaticMesh<?> mesh)
 	{
 		
 		return self();
