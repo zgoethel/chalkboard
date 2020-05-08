@@ -21,7 +21,10 @@ public class GLFWWindow
 	private int width = 1280, height = 720;
 	private String title = "GLFW Window";
 	
-	private CONTEXT context;
+	private final CONTEXT context;
+	
+	public GLFWWindow(CONTEXT context) { this.context = context; }
+	
 	
 	@Override
 	public GLFWWindow<CONTEXT> generate()
@@ -32,13 +35,6 @@ public class GLFWWindow
 
 	@Override
 	public GLFWWindow<CONTEXT> destroy() { GLFW.glfwDestroyWindow(this.pointer()); return self(); }
-
-	@Override
-	public GLFWWindow<CONTEXT> attachContext(CONTEXT context)
-	{
-		this.context = context;
-		return self();
-	}
 
 	@Override
 	public Long pointer() { return pointer; }
@@ -62,9 +58,10 @@ public class GLFWWindow
 	public GLFWWindow<CONTEXT> update() { GLFW.glfwPollEvents(); return self(); }
 	
 	
+	@Override
 	public GLFWLifecycle<CONTEXT> createLifecycle(Runnable init, Runnable update, Runnable destroy)
 	{
-		return new GLFWLifecycle<CONTEXT>()
+		return new GLFWLifecycle<CONTEXT>(context, self())
 				{
 					@Override
 					public GLFWLifecycle<CONTEXT> init()
@@ -86,8 +83,6 @@ public class GLFWWindow
 						destroy.run();
 						return self();
 					}
-				}
-				.withWindow(self())
-				.withContext(context);
+				};
 	}
 }

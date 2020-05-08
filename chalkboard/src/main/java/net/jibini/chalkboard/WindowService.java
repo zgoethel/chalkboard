@@ -15,6 +15,4 @@ public interface WindowService
 			NameVersioned, Conversational<WINDOWSERV>
 {
 	WINDOW createWindow();
-	
-	WINDOWSERV attachContext(CONTEXT context);
 }

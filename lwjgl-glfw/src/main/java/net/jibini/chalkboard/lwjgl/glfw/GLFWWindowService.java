@@ -18,10 +18,10 @@ public class GLFWWindowService
 		>
 {
 	private GLFWErrorCallback error = GLFWErrorCallback.createThrow();
-	private CONTEXT context;
+	private final CONTEXT context;
 	
-	public GLFWWindowService<CONTEXT> attachContext(CONTEXT context)
-	{ this.context = context; return self(); }
+	public GLFWWindowService(CONTEXT context) { this.context = context; }
+	
 	
 	@Override
 	public GLFWWindowService<CONTEXT> destroy() { GLFW.glfwTerminate(); return self(); }
@@ -51,12 +51,10 @@ public class GLFWWindowService
 	public String version() { return GLFW.glfwGetVersionString() + " [LWJGL " + Version.getVersion() + "]"; }
 	
 
-	@SuppressWarnings("resource")
 	@Override
 	public GLFWWindow<CONTEXT> createWindow()
 	{
-		return new GLFWWindow<CONTEXT>()
-				.attachContext(context);
+		return new GLFWWindow<CONTEXT>(context);
 	}
 	
 	public GLFWWindowService<CONTEXT> hint(int hint, int value)

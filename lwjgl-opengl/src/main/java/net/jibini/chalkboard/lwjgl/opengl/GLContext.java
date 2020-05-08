@@ -10,12 +10,11 @@ import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsContext;
 import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
 import net.jibini.chalkboard.lwjgl.glfw.GLFWWindowService;
 import net.jibini.chalkboard.lwjgl.opengl.mesh.GL11StaticMesh;
-import net.jibini.chalkboard.lwjgl.opengl.mesh.GLStaticMesh;
 import net.jibini.chalkboard.signature.StaticMesh;
 
 public class GLContext implements GLFWGraphicsContext<GLContext>
 {
-	private int contextVersion = 30;
+	private int contextVersion = 10;
 	private boolean core = false;
 	private boolean forwardCompat = false;
 	
@@ -34,6 +33,15 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 		GL.createCapabilities();
 		GLUtil.setupDebugMessageCallback();
 		
+		if (contextVersion == 10)
+		{
+			String versionString = GL11.glGetString(GL11.GL_VERSION);
+			int middleIndex = versionString.indexOf('.');
+			
+			contextVersion *= Integer.valueOf(versionString.substring(middleIndex - 1, middleIndex));
+			contextVersion += Integer.valueOf(versionString.substring(middleIndex + 1, middleIndex + 2));
+		}
+		
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		
 		GL11.glEnable(GL11.GL_CULL_FACE);
@@ -50,8 +58,19 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 	public GLContext destroy() { GL.destroy(); return self(); }
 
 	
+	public GLVersionFamily determineEngineCompatibility()
+	{
+		if (contextVersion >= 40)
+			return GLVersionFamily.MODERN;
+		else if (contextVersion >= 30)
+			return GLVersionFamily.MID_RANGE;
+		else
+			return GLVersionFamily.LEGACY;
+	}
+	
 	@Override
 	public String name() { return "OpenGL"; }
+	
 
 	@Override
 	public String version()
@@ -75,8 +94,7 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 	@Override
 	public GLFWWindowService<GLContext> createWindowService()
 	{
-		GLFWWindowService<GLContext> w = new GLFWWindowService<GLContext>()
-				.attachContext(this)
+		GLFWWindowService<GLContext> w = new GLFWWindowService<GLContext>(this)
 				.initializeOnce()
 				
 				.hint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, contextVersion / 10)
@@ -117,17 +135,15 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 	@Override
 	public StaticMesh<?> createStaticMesh()
 	{
-		if (contextVersion <= 20)
+		switch (determineEngineCompatibility())
+		{
+		case MODERN:
+			
+		case MID_RANGE:
+			
+		case LEGACY:
+		default:
 			return new GL11StaticMesh();
-		return new GL11StaticMesh();
-	}
-
-	@SuppressWarnings("rawtypes")
-	@Deprecated
-	@Override
-	public GLContext renderMesh(StaticMesh<?> mesh)
-	{
-		((GLStaticMesh)mesh).renderCall();
-		return null;
+		}
 	}
 }

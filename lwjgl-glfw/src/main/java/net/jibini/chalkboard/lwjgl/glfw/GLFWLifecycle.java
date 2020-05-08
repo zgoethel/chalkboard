@@ -5,17 +5,19 @@ import net.jibini.chalkboard.life.Lifecycle;
 public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>>
 		implements Lifecycle<GLFWLifecycle<CONTEXT>>
 {
-	private CONTEXT contextGiven, context;
-	private GLFWWindow<CONTEXT> window;
+	private final CONTEXT contextGiven;
+	private final GLFWWindow<CONTEXT> window;
+
+	private CONTEXT context;
 	
 	private long t = 0, c = -1;
 	
-	public GLFWLifecycle<CONTEXT> withWindow(GLFWWindow<CONTEXT> window)
-	{ this.window = window; return self(); }
-	
-	public GLFWLifecycle<CONTEXT> withContext(CONTEXT context)
-	{ this.contextGiven = context; return self(); }
-	
+	public GLFWLifecycle(CONTEXT context, GLFWWindow<CONTEXT> window)
+	{
+		this.contextGiven = context;
+		this.context = context;
+		this.window = window;
+	}
 	
 	@Override
 	public GLFWLifecycle<CONTEXT> initContext()
@@ -24,9 +26,7 @@ public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>
 		context = contextGiven
 			.initializeOnce()
 			.spawn()
-			
 			.attachWindow(window)
-//			.makeCurrent()
 			.generate();
 		return self();
 	}
@@ -45,8 +45,7 @@ public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>
 	public GLFWLifecycle<CONTEXT> preUpdate()
 	{
 		window.update();
-		context//.makeCurrent()
-				.prepareRender();
+		context.prepareRender();
 		return self();
 	}
 
@@ -85,7 +84,6 @@ public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>
 		context.destroy();
 		return self();
 	}
-	
 
 	@Override
 	public boolean isAlive() { return !window.shouldClose(); }

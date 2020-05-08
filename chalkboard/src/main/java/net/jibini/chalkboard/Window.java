@@ -1,5 +1,6 @@
 package net.jibini.chalkboard;
 
+import net.jibini.chalkboard.life.Lifecycle;
 import net.jibini.chalkboard.object.Conversational;
 import net.jibini.chalkboard.object.Destroyable;
 import net.jibini.chalkboard.object.Generatable;
@@ -19,7 +20,8 @@ public interface Window
 	WINDOW withTitle(String title);
 	
 	
-	WINDOW attachContext(CONTEXT context);
-	
 	WINDOW update();
+	
+	
+	Lifecycle<?> createLifecycle(Runnable init, Runnable update, Runnable destroy);
 }

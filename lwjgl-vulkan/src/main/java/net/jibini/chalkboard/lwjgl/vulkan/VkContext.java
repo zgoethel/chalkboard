@@ -193,8 +193,7 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 	@Override
 	public GLFWWindowService<VkContext> createWindowService()
 	{
-		return new GLFWWindowService<VkContext>()
-				.attachContext(self())
+		return new GLFWWindowService<VkContext>(self())
 				.initializeOnce()
 				
 				.hint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
@@ -219,13 +218,5 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 	{
 		
 		return null;
-	}
-
-	@Override
-	@Deprecated
-	public VkContext renderMesh(StaticMesh<?> mesh)
-	{
-		
-		return self();
 	}
 }

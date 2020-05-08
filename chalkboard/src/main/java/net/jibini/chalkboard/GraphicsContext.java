@@ -23,8 +23,4 @@ public interface GraphicsContext
 	GraphicsPipeline<?> createPipeline();
 	
 	StaticMesh<?> createStaticMesh();
-	
-	
-	@Deprecated
-	CONTEXT renderMesh(StaticMesh<?> mesh);
 }

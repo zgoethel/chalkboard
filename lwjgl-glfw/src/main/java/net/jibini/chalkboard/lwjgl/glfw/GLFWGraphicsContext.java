@@ -16,8 +16,6 @@ public interface GLFWGraphicsContext
 	CONTEXT attachWindow(GLFWWindow<CONTEXT> window);
 	
 	
-//	CONTEXT makeCurrent();
-	
 	CONTEXT prepareRender();
 	
 	CONTEXT swapBuffers();
