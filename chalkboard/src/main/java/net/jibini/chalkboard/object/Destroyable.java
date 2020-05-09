@@ -6,5 +6,6 @@ public interface Destroyable<THIS extends Destroyable<THIS>>
 {
 	THIS destroy();
 	
+	@Override
 	default void close() { destroy(); }
 }

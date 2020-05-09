@@ -1,4 +1,4 @@
-package net.jibini.chalkboard.signature;
+package net.jibini.chalkboard.render;
 
 import net.jibini.chalkboard.object.Conversational;
 import net.jibini.chalkboard.object.Destroyable;
@@ -9,9 +9,12 @@ public interface StaticMesh<THIS extends StaticMesh<THIS>>
 {
 	THIS appendVertex(float x, float y, float z);
 	
-	THIS appendVertices(float[] vertices);
+	THIS appendVertices(float ... vertices);
 	
 	THIS assignUniforms(int uniform, float[] uniforms);
 	
 	THIS breakSection();
+	
+	
+	THIS queueRender();
 }

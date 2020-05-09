@@ -4,21 +4,27 @@ import org.junit.Test;
 import org.lwjgl.opengl.GL11;
 
 import net.jibini.chalkboard.decorated.DecoratedGraphicsContext;
+import net.jibini.chalkboard.decorated.DecoratedRenderEngine;
 import net.jibini.chalkboard.decorated.DecoratedStaticMesh;
+import net.jibini.chalkboard.decorated.DecoratedWindowService;
 import net.jibini.chalkboard.lwjgl.opengl.GLContext;
 
 public class TestGLApplication
 {
+	DecoratedStaticMesh mesh;
+	
 	@Test
 	public void openGLContext() throws InterruptedException
 	{
 		try (
 				DecoratedGraphicsContext context = new DecoratedGraphicsContext(new GLContext());
-				DecoratedStaticMesh mesh = context.createStaticMesh();
+				DecoratedWindowService windowService = context.createWindowService();
+				
+				DecoratedRenderEngine renderEngine = context.createRenderEngine();
 			)
 		{
-			context.createWindowService()
-					.createWindow()
+			
+			windowService.createWindow()
 					.withHeight(420)
 					.withWidth(768)
 					.withTitle("Test Window (GL)")
@@ -28,14 +34,16 @@ public class TestGLApplication
 						System.out.println(context.createWindowService().name()
 								+ " (" + context.createWindowService().version() + ")");
 						
-						mesh.appendVertex(-1.0f, -1.0f, 0.0f)
-								.appendVertex(1.0f, -1.0f, 0.0f)
-								.appendVertex(1.0f, 1.0f, 0.0f)
-								
-								.appendVertex(1.0f, 1.0f, 0.0f)
-								.appendVertex(-1.0f, 1.0f, 0.0f)
-								.appendVertex(-1.0f, -1.0f, 0.0f)
-								
+						mesh = renderEngine.createStaticMesh()
+								.appendVertices(
+												-1.0f, -1.0f, 0.0f,
+												 1.0f, -1.0f, 0.0f,
+												 1.0f,  1.0f, 0.0f,
+												
+												 1.0f,  1.0f, 0.0f,
+												-1.0f,  1.0f, 0.0f,
+												-1.0f, -1.0f, 0.0f
+										)
 								.generate();
 					}, () ->
 					{
@@ -43,10 +51,11 @@ public class TestGLApplication
 								(float)Math.sin((float)System.nanoTime() / 1000000000L + 2 * 3.14f * 0.333f),
 								(float)Math.sin((float)System.nanoTime() / 1000000000L + 2 * 3.14f * 0.667f),
 								1.0f);
-						
+						renderEngine.queue(mesh)
+								.render();
 					}, () ->
 					{
-						
+						mesh.destroy();
 					})
 					.spawnThread()
 					.join();

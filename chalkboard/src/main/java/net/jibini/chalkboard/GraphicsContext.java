@@ -6,7 +6,7 @@ import net.jibini.chalkboard.object.Generatable;
 import net.jibini.chalkboard.object.Initializable;
 import net.jibini.chalkboard.object.NameVersioned;
 import net.jibini.chalkboard.object.Spawnable;
-import net.jibini.chalkboard.signature.StaticMesh;
+import net.jibini.chalkboard.render.RenderEngine;
 
 public interface GraphicsContext
 		<
@@ -22,5 +22,5 @@ public interface GraphicsContext
 	
 	GraphicsPipeline<?> createPipeline();
 	
-	StaticMesh<?> createStaticMesh();
+	RenderEngine<?, ?> createRenderEngine();
 }

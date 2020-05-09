@@ -1,19 +1,19 @@
 package net.jibini.chalkboard.render;
 
 import net.jibini.chalkboard.object.Conversational;
-import net.jibini.chalkboard.signature.StaticMesh;
+import net.jibini.chalkboard.object.Destroyable;
 
 public interface RenderEngine
 		<
-			THIS extends RenderEngine<THIS, MESH>,
-			MESH extends StaticMesh<MESH>
+			MESH extends StaticMesh<?>,
+			THIS extends RenderEngine<?, THIS>
 		>
-		extends Conversational<THIS>
+		extends Conversational<THIS>, Destroyable<THIS>
 {
 	MESH createStaticMesh();
 	
 	
-	THIS prepareMesh(MESH mesh);
+	THIS queue(MESH mesh);
 	
 	THIS render();
 }

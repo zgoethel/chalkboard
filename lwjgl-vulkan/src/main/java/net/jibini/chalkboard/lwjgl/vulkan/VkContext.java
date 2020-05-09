@@ -17,7 +17,6 @@ import org.lwjgl.vulkan.VkQueue;
 import org.lwjgl.vulkan.VkQueueFamilyProperties;
 
 import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsContext;
-import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
 import net.jibini.chalkboard.lwjgl.glfw.GLFWWindowService;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysDevice;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysExtensions;
@@ -26,7 +25,7 @@ import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysLayers;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysPhysicalDevice;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysQueue;
 import net.jibini.chalkboard.lwjgl.vulkan.system.VkSysSurface;
-import net.jibini.chalkboard.signature.StaticMesh;
+import net.jibini.chalkboard.render.RenderEngine;
 
 public class VkContext implements GLFWGraphicsContext<VkContext>
 {
@@ -37,7 +36,6 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 	private static VkSysExtensions				sys_extensions			= new VkSysExtensions(contextStack);
 	private static VkSysInstance				sys_instance			= new VkSysInstance(contextStack);
 
-	private GLFWWindow<VkContext>				window;
 	private VkInstance							instance;
 	
 	
@@ -129,7 +127,7 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 	{
 		try (MemoryStack stack = contextStack.push())
 		{
-			surface = sys_surface.generateSurface(instance, window);
+			surface = sys_surface.generateSurface(instance, attachment());
 			graphicsQueueNodeIndex = sys_surface.findQueueNodeIndex(queueProperties, physicalDevice, surface);
 			generateDevice();
 			
@@ -142,13 +140,6 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 			sys_physicalDevice.memoryProperties(physicalDevice, memoryProperties);
 		}
 		
-		return self();
-	}
-
-	@Override
-	public VkContext attachWindow(GLFWWindow<VkContext> window)
-	{
-		this.window = window;
 		return self();
 	}
 	
@@ -214,7 +205,7 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 	}
 
 	@Override
-	public StaticMesh<?> createStaticMesh()
+	public RenderEngine<?, ?> createRenderEngine()
 	{
 		
 		return null;

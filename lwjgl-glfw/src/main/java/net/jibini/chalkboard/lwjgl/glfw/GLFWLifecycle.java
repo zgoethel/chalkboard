@@ -26,7 +26,7 @@ public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>
 		context = contextGiven
 			.initializeOnce()
 			.spawn()
-			.attachWindow(window)
+			.attach(window)
 			.generate();
 		return self();
 	}

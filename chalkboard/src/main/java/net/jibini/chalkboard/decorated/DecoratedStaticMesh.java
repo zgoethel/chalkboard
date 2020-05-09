@@ -1,6 +1,6 @@
 package net.jibini.chalkboard.decorated;
 
-import net.jibini.chalkboard.signature.StaticMesh;
+import net.jibini.chalkboard.render.StaticMesh;
 
 public class DecoratedStaticMesh implements StaticMesh<DecoratedStaticMesh>
 {
@@ -31,7 +31,7 @@ public class DecoratedStaticMesh implements StaticMesh<DecoratedStaticMesh>
 	}
 
 	@Override
-	public DecoratedStaticMesh appendVertices(float[] vertices)
+	public DecoratedStaticMesh appendVertices(float ... vertices)
 	{
 		origin.appendVertices(vertices);
 		return self();
@@ -51,4 +51,10 @@ public class DecoratedStaticMesh implements StaticMesh<DecoratedStaticMesh>
 		return self();
 	}
 
+	@Override
+	public DecoratedStaticMesh queueRender()
+	{
+		origin.queueRender();
+		return self();
+	}
 }

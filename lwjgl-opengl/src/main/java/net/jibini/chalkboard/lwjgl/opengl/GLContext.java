@@ -7,40 +7,42 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLUtil;
 
 import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsContext;
-import net.jibini.chalkboard.lwjgl.glfw.GLFWWindow;
 import net.jibini.chalkboard.lwjgl.glfw.GLFWWindowService;
-import net.jibini.chalkboard.lwjgl.opengl.mesh.GL11StaticMesh;
-import net.jibini.chalkboard.signature.StaticMesh;
+import net.jibini.chalkboard.lwjgl.opengl.render.GLRenderEngine;
+import net.jibini.chalkboard.render.RenderEngine;
 
 public class GLContext implements GLFWGraphicsContext<GLContext>
 {
-	private int contextVersion = 10;
-	private boolean core = false;
-	private boolean forwardCompat = false;
+//	private int contextVersion = 10;
+//	private boolean core = false;
+//	private boolean forwardCompat = false;
 	
-	private GLFWWindow<GLContext>	window;
-	
-	public GLContext attachWindow(GLFWWindow<GLContext> window)
+	public static int contextVersion()
 	{
-		this.window = window;
-		return self();
+		int version = 10;
+		String versionString = GL11.glGetString(GL11.GL_VERSION);
+		int middleIndex = versionString.indexOf('.');
+		
+		version *= Integer.valueOf(versionString.substring(middleIndex - 1, middleIndex));
+		version += Integer.valueOf(versionString.substring(middleIndex + 1, middleIndex + 2));
+		return version;
 	}
 	
 	@Override
 	public GLContext generate()
 	{
-		GLFW.glfwMakeContextCurrent(window.pointer());
+		GLFW.glfwMakeContextCurrent(attachment().pointer());
 		GL.createCapabilities();
-		GLUtil.setupDebugMessageCallback();
+		GLUtil.setupDebugMessageCallback(); // Validation only
 		
-		if (contextVersion == 10)
-		{
-			String versionString = GL11.glGetString(GL11.GL_VERSION);
-			int middleIndex = versionString.indexOf('.');
-			
-			contextVersion *= Integer.valueOf(versionString.substring(middleIndex - 1, middleIndex));
-			contextVersion += Integer.valueOf(versionString.substring(middleIndex + 1, middleIndex + 2));
-		}
+//		if (contextVersion == 10)
+//		{
+//			String versionString = GL11.glGetString(GL11.GL_VERSION);
+//			int middleIndex = versionString.indexOf('.');
+//			
+//			contextVersion *= Integer.valueOf(versionString.substring(middleIndex - 1, middleIndex));
+//			contextVersion += Integer.valueOf(versionString.substring(middleIndex + 1, middleIndex + 2));
+//		}
 		
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		
@@ -56,17 +58,7 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 
 	@Override
 	public GLContext destroy() { GL.destroy(); return self(); }
-
 	
-	public GLVersionFamily determineEngineCompatibility()
-	{
-		if (contextVersion >= 40)
-			return GLVersionFamily.MODERN;
-		else if (contextVersion >= 30)
-			return GLVersionFamily.MID_RANGE;
-		else
-			return GLVersionFamily.LEGACY;
-	}
 	
 	@Override
 	public String name() { return "OpenGL"; }
@@ -75,19 +67,20 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 	@Override
 	public String version()
 	{
-		return GL11.glGetString(GL11.GL_VERSION) + " [Context " + contextVersion / 10 + "." + contextVersion % 10
-				+ ", LWJGL " + Version.getVersion() + "]";
+		return GL11.glGetString(GL11.GL_VERSION) + " [LWJGL " + Version.getVersion() + "]";
 	}
 
 	@Override
 	public GLPipeline createPipeline() { return new GLPipeline(); }
 	
 	
-	public GLContext withContextVersion(int version) { this.contextVersion = version; return self(); }
-
-	public GLContext enableGLCore() { this.core = true; return self(); }
-
-	public GLContext enableGLForwardCompat() { this.forwardCompat = true; return self(); }
+//	public int contextVersion() { return contextVersion; }
+//	
+//	public GLContext withContextVersion(int version) { this.contextVersion = version; return self(); }
+//
+//	public GLContext enableGLCore() { this.core = true; return self(); }
+//
+//	public GLContext enableGLForwardCompat() { this.forwardCompat = true; return self(); }
 	
 
 	@SuppressWarnings("resource")
@@ -95,55 +88,41 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 	public GLFWWindowService<GLContext> createWindowService()
 	{
 		GLFWWindowService<GLContext> w = new GLFWWindowService<GLContext>(this)
-				.initializeOnce()
+				.initializeOnce();
 				
-				.hint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, contextVersion / 10)
-				.hint(GLFW.GLFW_CONTEXT_VERSION_MINOR, contextVersion % 10);
-		if (core) w.hint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-		if (forwardCompat) w.hint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
+//				.hint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, contextVersion / 10)
+//				.hint(GLFW.GLFW_CONTEXT_VERSION_MINOR, contextVersion % 10);
+//		if (core) w.hint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+//		if (forwardCompat) w.hint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
 		return w;
 	}
 
 	@Override
 	public GLContext prepareRender()
 	{
-		GLFW.glfwMakeContextCurrent(window.pointer());
+		GLFW.glfwMakeContextCurrent(attachment().pointer());
 		GLFW.glfwSwapInterval(0);
 		
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-//		GL11.glLoadIdentity();
 		
 		return self();
 	}
 
 	@Override
 	public GLContext swapBuffers()
-	{ GLFW.glfwSwapBuffers(window.pointer()); return self(); }
+	{ GLFW.glfwSwapBuffers(attachment().pointer()); return self(); }
 
 	
-	@SuppressWarnings("resource")
 	@Override
 	public GLContext spawn()
 	{
-		GLContext spawned = new GLContext()
-				.withContextVersion(contextVersion);
-		if (core) spawned.enableGLCore();
-		if (forwardCompat) spawned.enableGLForwardCompat();
+		GLContext spawned = new GLContext();
+//				.withContextVersion(contextVersion);
+//		if (core) spawned.enableGLCore();
+//		if (forwardCompat) spawned.enableGLForwardCompat();
 		return spawned;
 	}
 
 	@Override
-	public StaticMesh<?> createStaticMesh()
-	{
-		switch (determineEngineCompatibility())
-		{
-		case MODERN:
-			
-		case MID_RANGE:
-			
-		case LEGACY:
-		default:
-			return new GL11StaticMesh();
-		}
-	}
+	public RenderEngine<?, ?> createRenderEngine() { return new GLRenderEngine(); }
 }

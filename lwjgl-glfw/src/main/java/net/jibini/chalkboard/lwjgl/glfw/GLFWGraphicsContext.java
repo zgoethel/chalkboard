@@ -1,6 +1,7 @@
 package net.jibini.chalkboard.lwjgl.glfw;
 
 import net.jibini.chalkboard.GraphicsContext;
+import net.jibini.chalkboard.object.Attachable;
 
 public interface GLFWGraphicsContext
 		<
@@ -11,11 +12,9 @@ public interface GLFWGraphicsContext
 			CONTEXT,
 			GLFWWindowService<CONTEXT>,
 			GLFWWindow<CONTEXT>
-		>
+		>,
+			Attachable<GLFWWindow<CONTEXT>, CONTEXT>
 {
-	CONTEXT attachWindow(GLFWWindow<CONTEXT> window);
-	
-	
 	CONTEXT prepareRender();
 	
 	CONTEXT swapBuffers();

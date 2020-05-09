@@ -51,6 +51,7 @@ public class DecoratedGraphicsContext implements GraphicsContext
 	@Override
 	public DecoratedGraphicsPipeline createPipeline() { return new DecoratedGraphicsPipeline(origin.createPipeline()); }
 
+	
 	@Override
-	public DecoratedStaticMesh createStaticMesh() { return new DecoratedStaticMesh(origin.createStaticMesh()); }
+	public DecoratedRenderEngine createRenderEngine() { return new DecoratedRenderEngine(origin.createRenderEngine()); }
 }
