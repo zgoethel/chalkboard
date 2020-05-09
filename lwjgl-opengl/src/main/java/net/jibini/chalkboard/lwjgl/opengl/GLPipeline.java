@@ -1,8 +1,8 @@
 package net.jibini.chalkboard.lwjgl.opengl;
 
-import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsPipeline;
+import net.jibini.chalkboard.GraphicsPipeline;
 
-public class GLPipeline implements GLFWGraphicsPipeline<GLPipeline>
+public class GLPipeline implements GraphicsPipeline<GLPipeline>
 {
 	@Override
 	public GLPipeline destroy()

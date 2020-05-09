@@ -1,8 +1,8 @@
 package net.jibini.chalkboard.lwjgl.vulkan;
 
-import net.jibini.chalkboard.lwjgl.glfw.GLFWGraphicsPipeline;
+import net.jibini.chalkboard.GraphicsPipeline;
 
-public class VkPipeline implements GLFWGraphicsPipeline<VkPipeline>
+public class VkPipeline implements GraphicsPipeline<VkPipeline>
 {
 	@Override
 	public VkPipeline destroy()
