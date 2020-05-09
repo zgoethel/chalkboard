@@ -16,5 +16,5 @@ public interface StaticMesh<THIS extends StaticMesh<THIS>>
 	THIS breakSection();
 	
 	
-	THIS queueRender();
+	THIS queue();
 }

@@ -5,8 +5,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class AbstractRenderEngine
 		<
-			MESH extends StaticMesh<?>,
-			THIS extends AbstractRenderEngine<?, THIS>
+			MESH extends StaticMesh<MESH>,
+			THIS extends AbstractRenderEngine<MESH, THIS>
 		>
 		implements RenderEngine<MESH, THIS>
 {

@@ -23,7 +23,7 @@ public class DecoratedRenderEngine implements RenderEngine
 	@Override
 	public DecoratedRenderEngine queue(DecoratedStaticMesh mesh)
 	{
-		mesh.queueRender();
+		mesh.queue();
 		return self();
 	}
 

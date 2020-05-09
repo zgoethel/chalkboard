@@ -5,8 +5,8 @@ import net.jibini.chalkboard.object.Destroyable;
 
 public interface RenderEngine
 		<
-			MESH extends StaticMesh<?>,
-			THIS extends RenderEngine<?, THIS>
+			MESH extends StaticMesh<MESH>,
+			THIS extends RenderEngine<MESH, THIS>
 		>
 		extends Conversational<THIS>, Destroyable<THIS>
 {

@@ -12,7 +12,7 @@ public class GL11StaticMesh implements GLMeshExtension<GL11StaticMesh>
 	@Override
 	public GL11StaticMesh destroy()
 	{
-		
+		GL11.glDeleteLists(displayList, 1);
 		return self();
 	}
 

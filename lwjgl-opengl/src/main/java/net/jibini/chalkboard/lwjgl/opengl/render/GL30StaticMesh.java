@@ -16,7 +16,7 @@ public class GL30StaticMesh implements GLMeshExtension<GL30StaticMesh>
 	@Override
 	public GL30StaticMesh destroy()
 	{
-		
+		GL15.glDeleteBuffers(vertexBuffer);
 		return self();
 	}
 
@@ -46,6 +46,7 @@ public class GL30StaticMesh implements GLMeshExtension<GL30StaticMesh>
 		
 		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, attachment().vertices.size() / 3);
 		GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
+		
 		return self();
 	}
 }

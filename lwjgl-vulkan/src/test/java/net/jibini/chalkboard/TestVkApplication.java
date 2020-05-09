@@ -2,6 +2,9 @@ package net.jibini.chalkboard;
 
 import org.junit.Test;
 
+import net.jibini.chalkboard.decorated.DecoratedGraphicsContext;
+import net.jibini.chalkboard.decorated.DecoratedRenderEngine;
+import net.jibini.chalkboard.decorated.DecoratedWindowService;
 import net.jibini.chalkboard.lwjgl.vulkan.VkContext;
 
 public class TestVkApplication
@@ -9,10 +12,15 @@ public class TestVkApplication
 	@Test
 	public void openVkContext() throws InterruptedException
 	{
-		try (VkContext context = new VkContext())
+		try (
+				DecoratedGraphicsContext context = new DecoratedGraphicsContext(new VkContext());
+				DecoratedWindowService windowService = context.createWindowService();
+				
+				DecoratedRenderEngine renderEngine = context.createRenderEngine();
+				//TODO: Loses link to context when new one spawns
+			)
 		{
-			context.createWindowService()
-					.createWindow()
+			windowService.createWindow()
 					.withHeight(420)
 					.withWidth(768)
 					.withTitle("Test Window (Vk)")

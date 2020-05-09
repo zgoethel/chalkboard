@@ -10,7 +10,6 @@ public class GLStaticMesh extends AbstractStaticMesh<GLRenderEngine, GLStaticMes
 	public GLStaticMesh(GLRenderEngine engine) { attach(engine); }
 	
 	
-	@SuppressWarnings("resource")
 	@Override
 	public GLStaticMesh generate()
 	{

@@ -36,14 +36,14 @@ public class TestGLApplication
 						
 						mesh = renderEngine.createStaticMesh()
 								.appendVertices(
-												-1.0f, -1.0f, 0.0f,
-												 1.0f, -1.0f, 0.0f,
-												 1.0f,  1.0f, 0.0f,
-												
-												 1.0f,  1.0f, 0.0f,
-												-1.0f,  1.0f, 0.0f,
-												-1.0f, -1.0f, 0.0f
-										)
+										-1.0f, -1.0f, 0.0f,
+										 1.0f, -1.0f, 0.0f,
+										 1.0f,  1.0f, 0.0f,
+										
+										 1.0f,  1.0f, 0.0f,
+										-1.0f,  1.0f, 0.0f,
+										-1.0f, -1.0f, 0.0f
+								)
 								.generate();
 					}, () ->
 					{

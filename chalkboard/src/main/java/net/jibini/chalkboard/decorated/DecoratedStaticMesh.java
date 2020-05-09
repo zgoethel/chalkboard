@@ -52,9 +52,9 @@ public class DecoratedStaticMesh implements StaticMesh<DecoratedStaticMesh>
 	}
 
 	@Override
-	public DecoratedStaticMesh queueRender()
+	public DecoratedStaticMesh queue()
 	{
-		origin.queueRender();
+		origin.queue();
 		return self();
 	}
 }

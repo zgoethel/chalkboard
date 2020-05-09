@@ -40,7 +40,7 @@ public abstract class AbstractStaticMesh
 	}
 
 	@Override
-	public THIS queueRender()
+	public THIS queue()
 	{
 		attachment().queue(self());
 		return self();

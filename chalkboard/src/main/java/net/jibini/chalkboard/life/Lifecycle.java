@@ -1,10 +1,7 @@
 package net.jibini.chalkboard.life;
 
-import net.jibini.chalkboard.object.Conversational;
-
 public interface Lifecycle<THIS extends Lifecycle<THIS>>
-		extends Conversational<THIS>,
-			InitTasks<THIS>, UpdateTasks<THIS>, DestroyTasks<THIS>
+		extends InitTasks<THIS>, UpdateTasks<THIS>, DestroyTasks<THIS>
 {
 	THIS initContext();
 	
