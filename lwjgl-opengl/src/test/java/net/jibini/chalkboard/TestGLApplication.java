@@ -7,7 +7,7 @@ import net.jibini.chalkboard.decorated.DecoratedRenderEngine;
 import net.jibini.chalkboard.decorated.DecoratedStaticMesh;
 import net.jibini.chalkboard.decorated.DecoratedWindowService;
 import net.jibini.chalkboard.lwjgl.opengl.GLContext;
-import net.jibini.chalkboard.render.StaticMesh;
+import net.jibini.chalkboard.render.DefaultAttrib;
 
 public class TestGLApplication
 {
@@ -43,7 +43,7 @@ public class TestGLApplication
 										-1.0f,  1.0f, 0.0f,
 										-1.0f, -1.0f, 0.0f
 								)
-								.interleave(StaticMesh.DEFAULT_COLOR_ATTRIB, 4,
+								.interleave(DefaultAttrib.DEFAULT_COLOR_ATTRIB, 4,
 										1.0f, 0.0f, 0.0f, 1.0f,
 										0.0f, 1.0f, 0.0f, 1.0f,
 										0.0f, 0.0f, 1.0f, 1.0f,
@@ -54,10 +54,6 @@ public class TestGLApplication
 								.generate();
 					}, () ->
 					{
-//						GL11.glColor4f((float)Math.sin((float)System.nanoTime() / 1000000000L),
-//								(float)Math.sin((float)System.nanoTime() / 1000000000L + 2 * 3.14f * 0.333f),
-//								(float)Math.sin((float)System.nanoTime() / 1000000000L + 2 * 3.14f * 0.667f),
-//								1.0f);
 						renderEngine.queue(mesh)
 								.render();
 					}, () ->

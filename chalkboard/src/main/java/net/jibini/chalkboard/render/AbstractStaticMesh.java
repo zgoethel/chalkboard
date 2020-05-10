@@ -39,7 +39,7 @@ public abstract class AbstractStaticMesh
 	
 	public int sumStartingPoint(int attrib)
 	{
-		int start = 0;
+		int start = 3;
 		
 		for (Long meta : interleavedMeta)
 		{
@@ -64,10 +64,9 @@ public abstract class AbstractStaticMesh
 	
 	public int sumInterleavedTotalSize()
 	{
-		int length = 0;
-		for (List<Float> attrib : interleavedData.values())
-			length += attrib.size();
-		length += vertexData.size();
+		int length = vertexData.size();
+		for (Long meta : interleavedMeta)
+			length += decodeLength(meta) * (vertexData.size() / 3);
 		return length;
 	}
 	

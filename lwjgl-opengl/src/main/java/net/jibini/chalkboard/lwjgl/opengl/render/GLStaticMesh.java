@@ -1,5 +1,6 @@
 package net.jibini.chalkboard.lwjgl.opengl.render;
 
+import net.jibini.chalkboard.lwjgl.opengl.GLContext;
 import net.jibini.chalkboard.render.AbstractStaticMesh;
 
 public class GLStaticMesh extends AbstractStaticMesh<GLRenderEngine, GLStaticMesh>
@@ -12,10 +13,15 @@ public class GLStaticMesh extends AbstractStaticMesh<GLRenderEngine, GLStaticMes
 	@Override
 	public GLStaticMesh generate()
 	{
-//		if (GLContext.contextVersion() >= 30)
-//			origin = new GL30StaticMesh(self());
-//		else
-			origin = new GL20StaticMesh(self());
+		/*
+		 * GL30 is marked as an arbitrary cutoff point for "modern" VBO rendering,
+		 * where more modern hardware may handle VBOs better than display lists;
+		 * older hardware, even if it supports VBOs, may favor older implementations
+		 */
+		if (GLContext.contextVersion() >= 30)
+			origin = new GL15StaticMesh(self());
+		else
+			origin = new GL11StaticMesh(self());
 		
 		origin.generate();
 		return self();

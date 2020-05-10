@@ -6,23 +6,24 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import net.jibini.chalkboard.render.AbstractStaticMesh;
+import net.jibini.chalkboard.render.DefaultAttrib;
 
-public class GL20StaticMesh implements GLMeshExtension<GL20StaticMesh>
+public class GL11StaticMesh implements GLMeshExtension<GL11StaticMesh>
 {
 	private int displayList;
 	
-	public GL20StaticMesh(GLStaticMesh mesh) { attach(mesh); }
+	public GL11StaticMesh(GLStaticMesh mesh) { attach(mesh); }
 	
 	
 	@Override
-	public GL20StaticMesh destroy()
+	public GL11StaticMesh destroy()
 	{
 		GL11.glDeleteLists(displayList, 1);
 		return self();
 	}
 
 	@Override
-	public GL20StaticMesh generate()
+	public GL11StaticMesh generate()
 	{
 		GLStaticMesh mesh = attachment();
 		
@@ -41,7 +42,7 @@ public class GL20StaticMesh implements GLMeshExtension<GL20StaticMesh>
 				
 				switch (attrib)
 				{
-				case AbstractStaticMesh.DEFAULT_COLOR_ATTRIB:
+				case DefaultAttrib.DEFAULT_COLOR_ATTRIB:
 					switch (length)
 					{
 					case 4:
@@ -60,7 +61,7 @@ public class GL20StaticMesh implements GLMeshExtension<GL20StaticMesh>
 					}
 					break;
 					
-				case AbstractStaticMesh.DEFAULT_TEX_COORD_ATTRIB:
+				case DefaultAttrib.DEFAULT_TEX_COORD_ATTRIB:
 					switch (length)
 					{
 					case 2:
@@ -72,7 +73,7 @@ public class GL20StaticMesh implements GLMeshExtension<GL20StaticMesh>
 					}
 					break;
 					
-				case AbstractStaticMesh.DEFAULT_NORMAL_ATTRIB:
+				case DefaultAttrib.DEFAULT_NORMAL_ATTRIB:
 					switch (length)
 					{
 					case 3:
@@ -123,5 +124,5 @@ public class GL20StaticMesh implements GLMeshExtension<GL20StaticMesh>
 	}
 
 	@Override
-	public GL20StaticMesh render() { GL11.glCallList(displayList); return self(); }
+	public GL11StaticMesh render() { GL11.glCallList(displayList); return self(); }
 }
