@@ -25,8 +25,8 @@ public class GL30StaticMesh implements GLMeshExtension<GL30StaticMesh>
 	{
 		GLStaticMesh mesh = attachment();
 		
-		FloatBuffer vertexData = BufferUtils.createFloatBuffer(mesh.vertices.size());
-		for (Float f : mesh.vertices)
+		FloatBuffer vertexData = BufferUtils.createFloatBuffer(mesh.vertexData.size());
+		for (Float f : mesh.vertexData)
 			vertexData.put(f.floatValue());
 		vertexData.flip();
 				
@@ -44,7 +44,7 @@ public class GL30StaticMesh implements GLMeshExtension<GL30StaticMesh>
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexBuffer);
 		GL11.glVertexPointer(3, GL11.GL_FLOAT, 0, 0);
 		
-		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, attachment().vertices.size() / 3);
+		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, attachment().vertexData.size() / 3);
 		GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
 		
 		return self();

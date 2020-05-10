@@ -1,6 +1,5 @@
 package net.jibini.chalkboard.lwjgl.opengl.render;
 
-import net.jibini.chalkboard.lwjgl.opengl.GLContext;
 import net.jibini.chalkboard.render.AbstractStaticMesh;
 
 public class GLStaticMesh extends AbstractStaticMesh<GLRenderEngine, GLStaticMesh>
@@ -13,10 +12,10 @@ public class GLStaticMesh extends AbstractStaticMesh<GLRenderEngine, GLStaticMes
 	@Override
 	public GLStaticMesh generate()
 	{
-		if (GLContext.contextVersion() >= 30)
-			origin = new GL30StaticMesh(self());
-		else
-			origin = new GL11StaticMesh(self());
+//		if (GLContext.contextVersion() >= 30)
+//			origin = new GL30StaticMesh(self());
+//		else
+			origin = new GL20StaticMesh(self());
 		
 		origin.generate();
 		return self();

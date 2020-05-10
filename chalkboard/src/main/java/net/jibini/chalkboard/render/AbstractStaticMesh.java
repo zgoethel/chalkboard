@@ -1,6 +1,8 @@
 package net.jibini.chalkboard.render;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import net.jibini.chalkboard.object.Attachable;
@@ -12,31 +14,80 @@ public abstract class AbstractStaticMesh
 		>
 		implements StaticMesh<THIS>, Attachable<ENGINE, THIS>
 {
-	public final List<Float> vertices = new CopyOnWriteArrayList<>();
-	
-	@Override
-	public THIS appendVertex(float x, float y, float z) { appendVertices(x, y, z); return null; }
+	public final List<Float> vertexData = new CopyOnWriteArrayList<>();
 
+	public final Map<Integer, List<Float>> interleavedData = new ConcurrentHashMap<>();
+	public final List<Long> interleavedMeta = new CopyOnWriteArrayList<>();
+	
 	@Override
 	public THIS appendVertices(float ... vertices)
 	{
+		if (vertices.length % 3 != 0)
+			throw new IllegalStateException("Vertex array length must be divisible by 3.");
+		
 		for (float f : vertices)
-			this.vertices.add(f);
+			this.vertexData.add(f);
 		return self();
 	}
-
-	@Override
-	public THIS assignUniforms(int uniform, float[] uniforms)
+	
+	public static long encodeMeta(int uniform, int length) { return ((long)uniform << 32) + length; }
+	
+	public static int decodeAttrib(long encoded) { return (int)(encoded >> 32); }
+	
+	public static int decodeLength(long encoded) { return (int)(encoded & Integer.MAX_VALUE); }
+	
+	
+	public int sumStartingPoint(int attrib)
 	{
-		//TODO
-		return null;
+		int start = 0;
+		
+		for (Long meta : interleavedMeta)
+		{
+			int a = decodeAttrib(meta);
+			int l = decodeLength(meta);
+			if (a == attrib)
+				return start;
+			else
+				start += l;
+		}
+		
+		throw new IllegalStateException("Failed to find interleaved attrib start; attrib meta not found for ID.");
 	}
-
-	@Override
-	public THIS breakSection()
+	
+	public int sumInterleavedStride()
 	{
-		//TODO: Sub-meshes
-		return null;
+		int length = 3;
+		for (Long meta : interleavedMeta)
+			length += decodeLength(meta);
+		return length;
+	}
+	
+	public int sumInterleavedTotalSize()
+	{
+		int length = 0;
+		for (List<Float> attrib : interleavedData.values())
+			length += attrib.size();
+		length += vertexData.size();
+		return length;
+	}
+	
+	@Override
+	public THIS interleave(int attrib, int length, float ... values)
+	{
+		if (values.length % length != 0)
+			throw new IllegalStateException("Uniform value array length must be divisible by uniform length.");
+		
+		if (!interleavedData.containsKey(attrib))
+			interleavedData.put(attrib, new CopyOnWriteArrayList<Float>());
+		long encoded = encodeMeta(attrib, length);
+		if (!interleavedMeta.contains(encoded))
+			interleavedMeta.add(encoded);
+		
+		List<Float> attr = interleavedData.get(attrib);
+		for (float f : values)
+			attr.add(f);
+		
+		return self();
 	}
 
 	@Override

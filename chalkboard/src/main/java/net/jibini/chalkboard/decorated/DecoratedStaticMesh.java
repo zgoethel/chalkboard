@@ -24,13 +24,6 @@ public class DecoratedStaticMesh implements StaticMesh<DecoratedStaticMesh>
 	}
 
 	@Override
-	public DecoratedStaticMesh appendVertex(float x, float y, float z)
-	{
-		origin.appendVertex(x, y, z);
-		return self();
-	}
-
-	@Override
 	public DecoratedStaticMesh appendVertices(float ... vertices)
 	{
 		origin.appendVertices(vertices);
@@ -38,23 +31,17 @@ public class DecoratedStaticMesh implements StaticMesh<DecoratedStaticMesh>
 	}
 
 	@Override
-	public DecoratedStaticMesh assignUniforms(int uniform, float[] uniforms)
-	{
-		origin.assignUniforms(uniform, uniforms);
-		return self();
-	}
-
-	@Override
-	public DecoratedStaticMesh breakSection()
-	{
-		origin.breakSection();
-		return self();
-	}
-
-	@Override
 	public DecoratedStaticMesh queue()
 	{
 		origin.queue();
+		return self();
+	}
+
+
+	@Override
+	public DecoratedStaticMesh interleave(int uniform, int length, float... values)
+	{
+		origin.interleave(uniform, length, values);
 		return self();
 	}
 }
