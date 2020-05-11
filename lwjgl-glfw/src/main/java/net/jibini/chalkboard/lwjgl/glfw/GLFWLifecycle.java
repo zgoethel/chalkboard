@@ -5,16 +5,13 @@ import net.jibini.chalkboard.life.Lifecycle;
 public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>>
 		implements Lifecycle<GLFWLifecycle<CONTEXT>>
 {
-	private final CONTEXT contextGiven;
+	private final CONTEXT context;
 	private final GLFWWindow<CONTEXT> window;
-
-	private CONTEXT context;
 	
 	private long t = 0, c = -1;
 	
 	public GLFWLifecycle(CONTEXT context, GLFWWindow<CONTEXT> window)
 	{
-		this.contextGiven = context;
 		this.context = context;
 		this.window = window;
 	}
@@ -23,10 +20,7 @@ public abstract class GLFWLifecycle<CONTEXT extends GLFWGraphicsContext<CONTEXT>
 	public GLFWLifecycle<CONTEXT> initContext()
 	{
 		window.generate();
-		context = contextGiven
-			.initializeOnce()
-			.spawn()
-			.attach(window)
+		context.attach(window)
 			.generate();
 		return self();
 	}

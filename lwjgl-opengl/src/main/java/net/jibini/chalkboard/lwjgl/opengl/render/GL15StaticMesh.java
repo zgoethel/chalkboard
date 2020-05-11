@@ -35,24 +35,7 @@ public class GL15StaticMesh implements GLMeshExtension<GL15StaticMesh>
 		GLStaticMesh mesh = attachment();
 		
 		FloatBuffer vertexData = BufferUtils.createFloatBuffer(mesh.sumInterleavedTotalSize());
-		
-		for (int i = 0; i < mesh.vertexData.size() / 3; i++)
-		{
-			vertexData.put(mesh.vertexData.get(i * 3));
-			vertexData.put(mesh.vertexData.get(i * 3 + 1));
-			vertexData.put(mesh.vertexData.get(i * 3 + 2));
-			
-			for (long attribMeta : mesh.interleavedMeta)
-			{
-				int attrib = AbstractStaticMesh.decodeAttrib(attribMeta);
-				int length = AbstractStaticMesh.decodeLength(attribMeta);
-				
-				List<Float> attribData = mesh.interleavedData.get(attrib);
-				for (int j = i * length; j < i * length + length; j++)
-					vertexData.put(attribData.get(j % attribData.size()));
-			}
-		}
-		
+		mesh.populateInterleavedBuffer(vertexData);
 		vertexData.flip();
 				
 		vertexBuffer = GL15.glGenBuffers();
@@ -77,7 +60,7 @@ public class GL15StaticMesh implements GLMeshExtension<GL15StaticMesh>
 			int attrib = AbstractStaticMesh.decodeAttrib(attribMeta);
 			int length = AbstractStaticMesh.decodeLength(attribMeta);
 			
-			int startPoint = mesh.sumStartingPoint(attrib) * 4;
+			int startPoint = mesh.sumInterleavedOffset(attrib) * 4;
 			
 			switch (attrib)
 			{
@@ -86,16 +69,19 @@ public class GL15StaticMesh implements GLMeshExtension<GL15StaticMesh>
 				GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
 				GL11.glColorPointer(length, GL11.GL_FLOAT, stride, startPoint);
 				break;
+				
 			case DefaultAttrib.DEFAULT_TEX_COORD_ATTRIB:
 				enabledClientStates.add(GL11.GL_TEXTURE_COORD_ARRAY);
 				GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
 				GL11.glTexCoordPointer(length, GL11.GL_FLOAT, stride, startPoint);
 				break;
+				
 			case DefaultAttrib.DEFAULT_NORMAL_ATTRIB:
 				enabledClientStates.add(GL11.GL_NORMAL_ARRAY);
 				GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
 				GL11.glNormalPointer(GL11.GL_FLOAT, stride, startPoint);
 				break;
+				
 			default:
 				enabledAttribs.add(attrib);
 				GL20.glEnableVertexAttribArray(attrib);
@@ -108,12 +94,12 @@ public class GL15StaticMesh implements GLMeshExtension<GL15StaticMesh>
 		for (int i : enabledClientStates)
 			GL11.glDisableClientState(i);
 		enabledClientStates.clear();
+		GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
 		
 		for (int i : enabledAttribs)
 			GL20.glDisableVertexAttribArray(i);
 		enabledAttribs.clear();
 		
-		GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
 		return self();
 	}
 }

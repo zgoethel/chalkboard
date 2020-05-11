@@ -9,7 +9,7 @@ public interface StaticMesh<THIS extends StaticMesh<THIS>>
 {
 	THIS appendVertices(float ... vertices);
 	
-	THIS interleave(int uniform, int length, float ... values);
+	THIS appendAttribute(int uniform, int length, float ... values);
 	
 	
 	THIS queue();

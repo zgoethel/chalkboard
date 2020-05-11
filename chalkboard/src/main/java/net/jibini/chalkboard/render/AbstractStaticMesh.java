@@ -1,5 +1,6 @@
 package net.jibini.chalkboard.render;
 
+import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +38,7 @@ public abstract class AbstractStaticMesh
 	public static int decodeLength(long encoded) { return (int)(encoded & Integer.MAX_VALUE); }
 	
 	
-	public int sumStartingPoint(int attrib)
+	public int sumInterleavedOffset(int attrib)
 	{
 		int start = 3;
 		
@@ -70,8 +71,30 @@ public abstract class AbstractStaticMesh
 		return length;
 	}
 	
+	public THIS populateInterleavedBuffer(FloatBuffer buffer)
+	{
+		for (int i = 0; i < vertexData.size() / 3; i++)
+		{
+			buffer.put(vertexData.get(i * 3));
+			buffer.put(vertexData.get(i * 3 + 1));
+			buffer.put(vertexData.get(i * 3 + 2));
+			
+			for (long attribMeta : interleavedMeta)
+			{
+				int attrib = AbstractStaticMesh.decodeAttrib(attribMeta);
+				int length = AbstractStaticMesh.decodeLength(attribMeta);
+				
+				List<Float> attribData = interleavedData.get(attrib);
+				for (int j = i * length; j < i * length + length; j++)
+					buffer.put(attribData.get(j % attribData.size()));
+			}
+		}
+		
+		return self();
+	}
+	
 	@Override
-	public THIS interleave(int attrib, int length, float ... values)
+	public THIS appendAttribute(int attrib, int length, float ... values)
 	{
 		if (values.length % length != 0)
 			throw new IllegalStateException("Uniform value array length must be divisible by uniform length.");

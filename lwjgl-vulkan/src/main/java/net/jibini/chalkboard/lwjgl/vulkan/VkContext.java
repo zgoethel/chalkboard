@@ -66,6 +66,10 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 	@Override
 	public VkContext initialize()
 	{
+		createWindowService()
+				.initializeOnce()
+				.hint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
+		
 		if (!GLFWVulkan.glfwVulkanSupported())
 			throw new IllegalStateException("Cannot find a compatible Vulkan installable client driver (ICD)");
 		
@@ -156,9 +160,12 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 		if (instance != null)
 		{
 			KHRSurface.vkDestroySurfaceKHR(instance, surface, null);
+
+			VK10.vkDestroyDevice(device, null);
 			VK10.vkDestroyInstance(instance, null);
 		}
-		
+
+		instance = null;
 		return self();
 	}
 
@@ -180,15 +187,8 @@ public class VkContext implements GLFWGraphicsContext<VkContext>
 	public VkPipeline createPipeline() { return new VkPipeline(); }
 	
 
-	@SuppressWarnings("resource")
 	@Override
-	public GLFWWindowService<VkContext> createWindowService()
-	{
-		return new GLFWWindowService<VkContext>(self())
-				.initializeOnce()
-				
-				.hint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
-	}
+	public GLFWWindowService<VkContext> createWindowService() { return new GLFWWindowService<VkContext>(self()); }
 
 	@Override
 	public VkContext prepareRender()

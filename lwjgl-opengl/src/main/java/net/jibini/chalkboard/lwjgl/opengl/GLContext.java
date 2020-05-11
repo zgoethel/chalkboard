@@ -40,7 +40,12 @@ public class GLContext implements GLFWGraphicsContext<GLContext>
 	}
 
 	@Override
-	public GLContext initialize() { return self(); }
+	public GLContext initialize()
+	{
+		createWindowService()
+				.initializeOnce();
+		return self();
+	}
 
 	@Override
 	public GLContext destroy() { GL.destroy(); return self(); }

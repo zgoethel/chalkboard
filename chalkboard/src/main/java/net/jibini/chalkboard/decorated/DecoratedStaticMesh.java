@@ -39,9 +39,9 @@ public class DecoratedStaticMesh implements StaticMesh<DecoratedStaticMesh>
 
 
 	@Override
-	public DecoratedStaticMesh interleave(int uniform, int length, float... values)
+	public DecoratedStaticMesh appendAttribute(int uniform, int length, float... values)
 	{
-		origin.interleave(uniform, length, values);
+		origin.appendAttribute(uniform, length, values);
 		return self();
 	}
 }

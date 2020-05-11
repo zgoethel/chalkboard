@@ -9,15 +9,17 @@ import net.jibini.chalkboard.lwjgl.vulkan.VkContext;
 
 public class TestVkApplication
 {
+	private final VkContext internalContext = new VkContext()
+			.initializeOnce();
+	
 	@Test
 	public void openVkContext() throws InterruptedException
 	{
 		try (
-				DecoratedGraphicsContext context = new DecoratedGraphicsContext(new VkContext());
+				DecoratedGraphicsContext context = new DecoratedGraphicsContext(internalContext.spawn());
 				DecoratedWindowService windowService = context.createWindowService();
 				
 				DecoratedRenderEngine renderEngine = context.createRenderEngine();
-				//TODO: Loses link to context when new one spawns
 			)
 		{
 			windowService.createWindow()

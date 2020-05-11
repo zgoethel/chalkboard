@@ -11,13 +11,15 @@ import net.jibini.chalkboard.render.DefaultAttrib;
 
 public class TestGLApplication
 {
-	DecoratedStaticMesh mesh;
+	private final GLContext internalContext = new GLContext();
+	
+	private DecoratedStaticMesh mesh;
 	
 	@Test
 	public void openGLContext() throws InterruptedException
 	{
 		try (
-				DecoratedGraphicsContext context = new DecoratedGraphicsContext(new GLContext());
+				DecoratedGraphicsContext context = new DecoratedGraphicsContext(internalContext.spawn());
 				DecoratedWindowService windowService = context.createWindowService();
 				
 				DecoratedRenderEngine renderEngine = context.createRenderEngine();
@@ -43,7 +45,7 @@ public class TestGLApplication
 										-1.0f,  1.0f, 0.0f,
 										-1.0f, -1.0f, 0.0f
 								)
-								.interleave(DefaultAttrib.DEFAULT_COLOR_ATTRIB, 4,
+								.appendAttribute(DefaultAttrib.DEFAULT_COLOR_ATTRIB, 4,
 										1.0f, 0.0f, 0.0f, 1.0f,
 										0.0f, 1.0f, 0.0f, 1.0f,
 										0.0f, 0.0f, 1.0f, 1.0f,
