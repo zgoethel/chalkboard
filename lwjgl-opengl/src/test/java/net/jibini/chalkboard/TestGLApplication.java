@@ -37,22 +37,23 @@ public class TestGLApplication
 						
 						mesh = renderEngine.createStaticMesh()
 								.appendVertices(
-										-1.0f, -1.0f, 0.0f,
-										 1.0f, -1.0f, 0.0f,
-										 1.0f,  1.0f, 0.0f,
-										
-										 1.0f,  1.0f, 0.0f,
-										-1.0f,  1.0f, 0.0f,
-										-1.0f, -1.0f, 0.0f
-								)
+											-1.0f, -1.0f, 0.0f,
+											 1.0f, -1.0f, 0.0f,
+											 1.0f,  1.0f, 0.0f,
+											
+											 1.0f,  1.0f, 0.0f,
+											-1.0f,  1.0f, 0.0f,
+											-1.0f, -1.0f, 0.0f
+										)
 								.appendAttribute(DefaultAttrib.DEFAULT_COLOR_ATTRIB, 4,
-										1.0f, 0.0f, 0.0f, 1.0f,
-										0.0f, 1.0f, 0.0f, 1.0f,
-										0.0f, 0.0f, 1.0f, 1.0f,
-
-										0.0f, 0.0f, 1.0f, 1.0f,
-										1.0f, 0.0f, 1.0f, 1.0f,
-										1.0f, 0.0f, 0.0f, 1.0f)
+											1.0f, 0.0f, 0.0f, 1.0f,
+											0.0f, 1.0f, 0.0f, 1.0f,
+											0.0f, 0.0f, 1.0f, 1.0f,
+	
+											0.0f, 0.0f, 1.0f, 1.0f,
+											1.0f, 0.0f, 1.0f, 1.0f,
+											1.0f, 0.0f, 0.0f, 1.0f
+										)
 								.generate();
 					}, () ->
 					{

@@ -64,12 +64,23 @@ public class GL11StaticMesh implements GLMeshExtension<GL11StaticMesh>
 				case DefaultAttrib.DEFAULT_TEX_COORD_ATTRIB:
 					switch (length)
 					{
+					case 4:
+						GL11.glTexCoord4f(attribData.get((i * length) % attribData.size()),
+								attribData.get((i * length + 1) % attribData.size()),
+								attribData.get((i * length + 2) % attribData.size()),
+								attribData.get((i * length + 3) % attribData.size()));
+						break;
+					case 3:
+						GL11.glTexCoord3f(attribData.get((i * length) % attribData.size()),
+								attribData.get((i * length + 1) % attribData.size()),
+								attribData.get((i * length + 2) % attribData.size()));
+						break;
 					case 2:
 						GL11.glTexCoord2f(attribData.get((i * length) % attribData.size()),
 								attribData.get((i * length + 1) % attribData.size()));
 						break;
 					default:
-						throw new IllegalStateException("Invalid texture coordinate size, should be 2.");
+						throw new IllegalStateException("Invalid texture coordinate size, should be 4, 3, 2, or 1.");
 					}
 					break;
 					
