@@ -7,6 +7,7 @@ import net.jibini.chalkboard.object.Initializable;
 import net.jibini.chalkboard.object.NameVersioned;
 import net.jibini.chalkboard.object.Spawnable;
 import net.jibini.chalkboard.render.RenderEngine;
+import net.jibini.chalkboard.shading.Pipeline;
 
 public interface GraphicsContext
 		<
@@ -20,7 +21,7 @@ public interface GraphicsContext
 	WINDOWSERV createWindowService();
 	
 	
-	GraphicsPipeline<?> createPipeline();
+	Pipeline<?> createPipeline();
 	
 	RenderEngine<?, ?> createRenderEngine();
 }

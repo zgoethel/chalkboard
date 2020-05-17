@@ -13,11 +13,6 @@ public class GLStaticMesh extends AbstractStaticMesh<GLRenderEngine, GLStaticMes
 	@Override
 	public GLStaticMesh generate()
 	{
-		/*
-		 * GL30 is marked as an arbitrary cutoff point for "modern" VBO rendering,
-		 * where more modern hardware may handle VBOs better than display lists;
-		 * older hardware, even if it supports VBOs, may favor older implementations
-		 */
 		if (GLContext.contextVersion() >= 30)
 			origin = new GL15StaticMesh(self());
 		else

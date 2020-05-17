@@ -1,12 +1,14 @@
 package net.jibini.chalkboard.decorated;
 
-import net.jibini.chalkboard.GraphicsPipeline;
+import net.jibini.chalkboard.resource.BinaryResource;
+import net.jibini.chalkboard.shading.Pipeline;
+import net.jibini.chalkboard.shading.ShaderType;
 
-public class DecoratedGraphicsPipeline implements GraphicsPipeline<DecoratedGraphicsPipeline>
+public class DecoratedGraphicsPipeline implements Pipeline<DecoratedGraphicsPipeline>
 {
-	private final GraphicsPipeline<?> origin;
+	private final Pipeline<?> origin;
 	
-	public DecoratedGraphicsPipeline(GraphicsPipeline<?> origin) { this.origin = origin; }
+	public DecoratedGraphicsPipeline(Pipeline<?> origin) { this.origin = origin; }
 	
 	
 	@Override
@@ -20,6 +22,20 @@ public class DecoratedGraphicsPipeline implements GraphicsPipeline<DecoratedGrap
 	public DecoratedGraphicsPipeline generate()
 	{
 		origin.generate();
+		return self();
+	}
+
+	@Override
+	public DecoratedGraphicsPipeline attachShader(ShaderType type, BinaryResource glsl, BinaryResource spirv)
+	{
+		origin.attachShader(type, glsl, spirv);
+		return self();
+	}
+
+	@Override
+	public DecoratedGraphicsPipeline use()
+	{
+		origin.use();
 		return self();
 	}
 }
